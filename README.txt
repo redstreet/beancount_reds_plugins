@@ -1,9 +1,9 @@
 Description:
 ------------
-Plugin for accounts that should sum up to zero. Determines transactions
-that when taken together, sum up to zero, and move them to a specified
-account. The remaining entries are the 'unmatched' ones, that need attention
-from the user.
+
+Beancount [1] plugin for accounts that should sum up to zero. Determines transactions
+that when taken together, sum up to zero, and move them to a specified account. The
+remaining entries are the 'unmatched' ones, that need attention from the user.
 
 
 Motivation:
