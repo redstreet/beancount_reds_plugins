@@ -1,0 +1,37 @@
+Fri 01 May 2015 04:03:24 PM PDT
+
+beancount zerosum entries plugin:
+
+We try to identify sets of transactions in the ZeroSum account that sum up to
+zero. Ideally, all entries in the account will match, and the final sum of the
+account would be zero. In the real world, when this does not happen, the the
+remaining (unmatched) entries are the ones that need attention.
+
+The following types of entries can exist:
+- 'u': a single transaction with exactly two postings
+- 'm': a single transaction with multiple postings to the same ZeroSum account
+- 'i': a set of transactions in which individual postings to the same ZeroSum
+  account correspond to other postings in the same ZeroSum account
+
+We handle the following matches:
+- uu: easiest. my plugin already does this.
+
+- ii: doesn't exist. this collapses to the uu case. trivial.
+
+- mm: if we perform posting-level handling, and don't do anything at the
+  transaction level (eg, flagging a transaction), this case should work fine.
+  This means we 'move' postings to either a Matched or Unmatched account.
+
+- mi: should be the same as the mm case.
+
+
+---- 
+
+- um: (rare) might be difficult. We need to consider the sum of postings to
+  the same ZeroSum account for the 'm' transaction, and match that against the
+  'u'.
+
+- ui: (common) difficult. Might try matching for the same date + account
+
+
+
