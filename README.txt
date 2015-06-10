@@ -167,7 +167,12 @@ Invoking the plugin:
 --------------------
 First, an example:
 
-    plugin "beancount.plugins.zerosum" "{
+# Assuming you have checked out these plugin files into ~/accounts/plugins
+# (~/accounts/plugins/zerosum.py and (~/accounts/plugins/__init__.py exist):
+
+export PYTHONPATH=$PYTHONPATH:~/accounts
+
+    plugin "plugins.zerosum" "{
      'zerosum_accounts' : {
      'Assets:Zero-Sum-Accounts:Bank-Account-Transfers' : ('Assets:ZSA-Matched:Bank-Account-Transfers', 30),
      'Assets:Zero-Sum-Accounts:Credit-Card-Payments'   : ('Assets:ZSA-Matched:Credit-Card-Payments'  ,  6),
@@ -188,7 +193,7 @@ We use the included zerosum-example.beancount (reproduced below) as the minimum
 beancount file for this example. The plugin configuration directives is at the top of
 this file, and the output of bean-query is included for illustration.
 
-plugin "beancount.plugins.zerosum" "{
+plugin "plugins.zerosum" "{
  'zerosum_accounts' : { 
     'Assets:Reimbursements:Workplace' : ('Assets:Reimbursements-Received:Workplace',   40),
     'Assets:Rebates'                  : ('Assets:Zerosum-Matched:Rebates',            180),
