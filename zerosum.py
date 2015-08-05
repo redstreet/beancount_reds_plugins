@@ -180,12 +180,12 @@ def pretty_print_transaction(t):
 
 
 # replace the account on a given posting with a new account
-def account_replace(posting, new_account):
+def account_replace(txn, posting, new_account):
     # create a new posting with the new account, then remove old and add new
     # from parent transaction
     new_posting = posting._replace(account=new_account)
-    new_posting.entry.postings.remove(posting)
-    new_posting.entry.postings.append(new_posting)
+    txn.postings.remove(posting)
+    txn.postings.append(new_posting)
 
 
 
@@ -258,10 +258,10 @@ def zerosum(entries, options_map, config):
             for posting in txn.postings:
                 if posting.account == zs_account:
                     zerosum_postings_count += 1
-                    matches = [p for t in zerosum_txns for p in t.postings
+                    matches = [(p, t) for t in zerosum_txns for p in t.postings
                             if (p.account == zs_account and
                             abs(p.position.number + posting.position.number) < EPSILON_DELTA and
-                            abs((p.entry.date - posting.entry.date).days) <= date_range)
+                            abs((t.date - txn.date).days) <= date_range)
                             ]
 
                     # replace accounts in the pair
@@ -273,8 +273,8 @@ def zerosum(entries, options_map, config):
                             # be the same as the closest
                             multiple_match_count += 1
 
-                        account_replace(posting,    account_config[0])
-                        account_replace(matches[0], account_config[0])
+                        account_replace(txn,           posting,       account_config[0])
+                        account_replace(matches[0][1], matches[0][0], account_config[0])
                         if account_config[0] not in new_accounts:
                             new_accounts.append(account_config[0])
 
@@ -300,7 +300,7 @@ def create_open_directives(new_accounts, entries):
     new_open_entries = []
     for account_ in sorted(new_accounts):
         if account_ not in open_entries:
-            meta = data.new_metadata(meta.filename, 0)
+            meta = data.new_metadata(meta['filename'], 0)
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
     return(new_open_entries)
