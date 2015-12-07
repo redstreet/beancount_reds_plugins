@@ -300,7 +300,7 @@ def create_open_directives(new_accounts, entries):
     new_open_entries = []
     for account_ in sorted(new_accounts):
         if account_ not in open_entries:
-            meta = data.new_metadata(meta.filename, 0)
+            meta = data.new_metadata(meta['filename'], 0)
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
     return(new_open_entries)
