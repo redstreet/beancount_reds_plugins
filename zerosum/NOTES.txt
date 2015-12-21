@@ -1,4 +1,4 @@
-Fri 01 May 2015 04:03:24 PM PDT
+2015-05-01
 
 beancount zerosum entries plugin:
 
@@ -32,6 +32,5 @@ We handle the following matches:
   'u'.
 
 - ui: (common) difficult. Might try matching for the same date + account
-
 
 
