@@ -1,3 +1,1 @@
-"""Beancount zerosum plugin. Please see README.txt for details.
-"""
-
+"""Beancount plugins. Please see README.txt in individual directories for details."""

@@ -1,4 +1,4 @@
-plugin "beancount.plugins.zerosum" "{
+plugin "beancount_plugins_redstreet.zerosum.zerosum" "{
  'zerosum_accounts' : { 
     'Assets:Reimbursements:Workplace' : ('Assets:Reimbursements-Received:Workplace',   40),
     'Assets:Rebates'                  : ('Assets:Zerosum-Matched:Rebates',            180),
