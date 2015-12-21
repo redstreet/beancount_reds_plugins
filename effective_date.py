@@ -80,7 +80,7 @@ def effective_date(entries, options_map, config):
         outlist = (interesting_entries
                    if (isinstance(entry, data.Transaction) and 
                        'effective_date' in entry.meta and
-                       type(entry.meta.effective_date) == datetime.date)
+                       type(entry.meta['effective_date']) == datetime.date)
                    else filtered_entries)
         outlist.append(entry)
 
@@ -103,7 +103,7 @@ def effective_date(entries, options_map, config):
                 found = True
                 modcount += 1
 
-                if entry.meta.effective_date > entry.date:
+                if entry.meta['effective_date'] > entry.date:
                     holding_account = "Assets:Hold"
                 else:
                     holding_account = "Liabilities:Hold"
@@ -127,11 +127,11 @@ def effective_date(entries, options_map, config):
                                                 links=(entry.links or set()) | set([link]))
 
             effective_date_entry_narration = entry.narration + " (originally: {})".format(str(entry.date))
-            # effective_date_entry = data.entry_replace(entry, date=entry.meta.effective_date,
+            # effective_date_entry = data.entry_replace(entry, date=entry.meta['effective_date'],
             #         postings=effective_date_entry_postings,
             #         narration = effective_date_entry_narration,
             #         links=(entry.links or set()) | set([link]))
-            effective_date_entry = entry._replace(date=entry.meta.effective_date,
+            effective_date_entry = entry._replace(date=entry.meta['effective_date'],
                     postings=effective_date_entry_postings,
                     narration = effective_date_entry_narration,
                     links=(entry.links or set()) | set([link]))
@@ -159,7 +159,7 @@ def create_open_directives(new_accounts, entries):
     new_open_entries = []
     for account_ in sorted(new_accounts):
         if account_ not in open_entries:
-            meta = data.new_metadata(meta.filename, 0)
+            meta = data.new_metadata(meta['filename'], 0)
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
     return(new_open_entries)
