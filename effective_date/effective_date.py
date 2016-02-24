@@ -8,7 +8,6 @@ from beancount.core.amount import ZERO
 from beancount.core import data
 from beancount.core import account
 from beancount.core import getters
-from beancount.core import position
 from beancount.core import flags
 from beancount.ops import holdings
 from beancount.ops import prices
@@ -112,7 +111,9 @@ def effective_date(entries, options_map, config):
                     new_accounts.append(new_posting.account)
                 modified_entry_postings += [new_posting]
                 effective_date_entry_postings  += [posting]
-                effective_date_entry_postings  += [posting._replace(account=posting.account.replace('Expenses', holding_account), position=posting.position.get_negative())]
+
+                effective_date_entry_postings  += [posting._replace(account=posting.account.replace('Expenses', holding_account), units=-posting.units)]
+
                 if posting.account not in new_accounts:
                     new_accounts.append(posting.account)
             else:

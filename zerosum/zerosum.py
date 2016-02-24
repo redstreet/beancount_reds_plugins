@@ -162,7 +162,6 @@ from beancount.core.amount import ZERO
 from beancount.core import data
 from beancount.core import account
 from beancount.core import getters
-from beancount.core import position
 from beancount.core import flags
 from beancount.ops import holdings
 from beancount.ops import prices
@@ -172,11 +171,11 @@ from beancount.parser import printer
 
 __plugins__ = ('zerosum',)
 
-def pretty_print_transaction(t):
-    print(t.date)
-    for p in t.postings:
-        print("            ", p.account, p.position)
-    print("")
+# def pretty_print_transaction(t):
+#     print(t.date)
+#     for p in t.postings:
+#         # print("            ", p.account, p.position)  # deprecated
+#     print("")
 
 
 # replace the account on a given posting with a new account
@@ -260,7 +259,7 @@ def zerosum(entries, options_map, config):
                     zerosum_postings_count += 1
                     matches = [(p, t) for t in zerosum_txns for p in t.postings
                             if (p.account == zs_account and
-                            abs(p.position.number + posting.position.number) < EPSILON_DELTA and
+                            abs(p.units.number + posting.units.number) < EPSILON_DELTA and
                             abs((t.date - txn.date).days) <= date_range)
                             ]
 
