@@ -18,7 +18,7 @@ import string
 import random
 
 
-__plugins__ = ('effective_date',)
+__plugins__ = ['effective_date']
 
 
 # TODO:
