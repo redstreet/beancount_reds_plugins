@@ -156,6 +156,7 @@ which to check for matches for that account.
 
 """
 
+import time
 import collections
 
 from beancount.core.amount import ZERO
@@ -205,9 +206,17 @@ def zerosum(entries, options_map, config):
 
       options_map: a dict of options parsed from the file (not used)
 
-      config: A configuration string, which is intended to be a Python dict
-      mapping zerosum account name -> (matched zerosum account name,
-      date_range). See example for more info.
+      config: Python dict with two entries:
+
+      - 'zerosum_accounts': maps zerosum_account_name -> (matched_zerosum_account_name,
+        date_range). matched_zerosum_account_name is optional, and can be left blank. If
+        left blank, the name of the matched account is derived from the
+        zerosum_account_name, by performing the string replacement specified by
+        'account_name_replace' (see below)
+
+      - 'account_name_replace': tuple of two entries. See above
+
+      See example for more info.
 
     Returns:
       A tuple of entries and errors.
@@ -215,11 +224,13 @@ def zerosum(entries, options_map, config):
     """
 
 
+    start_time = time.time()
     config_obj = eval(config, {}, {})
     if not isinstance(config_obj, dict):
         raise RuntimeError("Invalid plugin configuration: should be a single dict.")
 
     zs_accounts_list = config_obj.pop('zerosum_accounts', {})
+    (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ())
 
     errors = []
     new_accounts = []
@@ -241,9 +252,10 @@ def zerosum(entries, options_map, config):
             outlist.append(entry)
 
         # algorithm: iterate through zerosum_txns (zerosum transactions). For each
-        # transaction, for each of its postings involving zs_account, try to
-        # find a match across all the other zerosum_txns. If a match is found,
-        # replace the account name in the the pair of postings.
+        # transaction, for each of its postings involving zs_account, try to find a match
+        # across all the other zerosum_txns. If a match is found, replace the account name
+        # with the matched account name for the the pair of postings. This effectively
+        # moves matched transactions to a different account
 
         # This would be easier if we could ignore transactions and just
         # iterate across posting. But we cannot do so because postings are
@@ -272,15 +284,20 @@ def zerosum(entries, options_map, config):
                             # be the same as the closest
                             multiple_match_count += 1
 
-                        account_replace(txn,           posting,       account_config[0])
-                        account_replace(matches[0][1], matches[0][0], account_config[0])
-                        if account_config[0] not in new_accounts:
-                            new_accounts.append(account_config[0])
+                        target_account = account_config[0]
+                        if not account_config[0]:
+                            target_account = zs_account.replace(account_name_from, account_name_to)
+                        account_replace(txn,           posting,       target_account)
+                        account_replace(matches[0][1], matches[0][0], target_account)
+                        if target_account not in new_accounts:
+                            new_accounts.append(target_account)
 
     # TODO: should ideally track account specific earliest date
     new_open_entries = create_open_directives(new_accounts, entries)
 
-    print("Zerosum: {}/{} postings matched. {} multiple matches. {} new accounts added.".format(match_count, zerosum_postings_count, multiple_match_count, len(new_open_entries)))
+    elapsed_time = time.time() - start_time
+    print("Zerosum [{:.1f}s]: {}/{} postings matched. {} multiple matches. {} new accounts added.".format(
+        elapsed_time, match_count, zerosum_postings_count, multiple_match_count, len(new_open_entries)))
     
     # it's important to preserve and return 'entries', which was the input
     # list. This way, we won't inadvertantly add/remove entries from the
