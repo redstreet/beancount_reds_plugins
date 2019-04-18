@@ -141,7 +141,7 @@ Invoking the plugin:
 First, an example:
 
     plugin "beancount.plugins.zerosum" "{
-     'zerosum_accounts' : { 
+     'zerosum_accounts' : {
      'Assets:Zero-Sum-Accounts:Bank-Account-Transfers' : ('Assets:ZSA-Matched:Bank-Account-Transfers', 30),
      'Assets:Zero-Sum-Accounts:Credit-Card-Payments'   : ('Assets:ZSA-Matched:Credit-Card-Payments'  ,  6),
      'Assets:Zero-Sum-Accounts:Temporary'              : ('Assets:ZSA-Matched:Temporary'             , 90),
@@ -159,14 +159,8 @@ which to check for matches for that account.
 import time
 import collections
 
-from beancount.core.amount import ZERO
 from beancount.core import data
-from beancount.core import account
 from beancount.core import getters
-from beancount.core import flags
-from beancount.ops import holdings
-from beancount.parser import options
-from beancount.parser import printer
 
 DEBUG = 0
 
@@ -186,7 +180,6 @@ def account_replace(txn, posting, new_account):
     new_posting = posting._replace(account=new_account)
     txn.postings.remove(posting)
     txn.postings.append(new_posting)
-
 
 
 ZerosumError = collections.namedtuple('ZerosumError', 'source message entry')
@@ -223,7 +216,6 @@ def zerosum(entries, options_map, config):
 
     """
 
-
     start_time = time.time()
     config_obj = eval(config, {}, {})
     if not isinstance(config_obj, dict):
@@ -238,7 +230,7 @@ def zerosum(entries, options_map, config):
     match_count = 0
     multiple_match_count = 0
     EPSILON_DELTA = 0.0099
-    for zs_account,account_config in zs_accounts_list.items():
+    for zs_account, account_config in zs_accounts_list.items():
 
         date_range = account_config[1]
         zerosum_txns = []
@@ -246,8 +238,8 @@ def zerosum(entries, options_map, config):
         # this loop bins each entry into either zerosum_txns or non_zerosum_entries
         for entry in entries:
             outlist = (zerosum_txns
-                       if (isinstance(entry, data.Transaction) and
-                           any(posting.account == zs_account for posting in entry.postings))
+                       if (isinstance(entry, data.Transaction)
+                           and any(posting.account == zs_account for posting in entry.postings))
                        else non_zerosum_entries)
             outlist.append(entry)
 
@@ -269,16 +261,17 @@ def zerosum(entries, options_map, config):
             for posting in txn.postings:
                 if posting.account == zs_account:
                     zerosum_postings_count += 1
-                    matches = [(p, t) for t in zerosum_txns for p in t.postings
-                            if (p.account == zs_account and
-                            abs(p.units.number + posting.units.number) < EPSILON_DELTA and
-                            abs((t.date - txn.date).days) <= date_range)
-                            ]
+                    matches = [
+                        (p, t) for t in zerosum_txns for p in t.postings
+                        if (p.account == zs_account
+                            and abs(p.units.number + posting.units.number) < EPSILON_DELTA
+                            and abs((t.date - txn.date).days) <= date_range)
+                    ]
 
                     # replace accounts in the pair
-                    if len(matches) >=1:
+                    if len(matches) >= 1:
                         match_count += 1
-                        if len(matches) > 1:  #TODO: check if closest date is
+                        if len(matches) > 1:  # TODO: check if closest date is
                             # picked. zerosum_txns is sorted by date, so the
                             # earliest posting might be picked, which might not
                             # be the same as the closest
@@ -287,7 +280,7 @@ def zerosum(entries, options_map, config):
                         target_account = account_config[0]
                         if not account_config[0]:
                             target_account = zs_account.replace(account_name_from, account_name_to)
-                        account_replace(txn,           posting,       target_account)
+                        account_replace(txn,           posting,       target_account)  # NOQA
                         account_replace(matches[0][1], matches[0][0], target_account)
                         if target_account not in new_accounts:
                             new_accounts.append(target_account)
@@ -299,12 +292,11 @@ def zerosum(entries, options_map, config):
     if DEBUG:
         print("Zerosum [{:.1f}s]: {}/{} postings matched. {} multiple matches. {} new accounts added.".format(
             elapsed_time, match_count, zerosum_postings_count, multiple_match_count, len(new_open_entries)))
-    
+
     # it's important to preserve and return 'entries', which was the input
     # list. This way, we won't inadvertantly add/remove entries from the
     # original list of entries.
     return(new_open_entries + entries, errors)
-
 
 
 def create_open_directives(new_accounts, entries):
