@@ -158,13 +158,15 @@ which to check for matches for that account.
 
 import time
 import collections
+from ast import literal_eval
 
 from beancount.core import data
+from beancount.core import flags
 from beancount.core import getters
 
 DEBUG = 0
 
-__plugins__ = ('zerosum',)
+__plugins__ = ('zerosum', 'mark_unmatched',)
 
 # def pretty_print_transaction(t):
 #     print(t.date)
@@ -217,7 +219,7 @@ def zerosum(entries, options_map, config):
     """
 
     start_time = time.time()
-    config_obj = eval(config, {}, {})
+    config_obj = literal_eval(config)
     if not isinstance(config_obj, dict):
         raise RuntimeError("Invalid plugin configuration: should be a single dict.")
 
@@ -297,6 +299,22 @@ def zerosum(entries, options_map, config):
     # list. This way, we won't inadvertantly add/remove entries from the
     # original list of entries.
     return(new_open_entries + entries, errors)
+
+
+def mark_unmatched(entries, unused_options_map, config):
+    '''Iterate again, to mark unmatched entries'''
+
+    new_entries = []
+    errors = []
+    zs_accounts = literal_eval(config)['zerosum_accounts'].keys()
+    for entry in entries:
+        if isinstance(entry, data.Transaction):
+            for posting in entry.postings:
+                if posting.account in zs_accounts:
+                    entry = entry._replace(flag=flags.FLAG_WARNING)
+                    break
+        new_entries.append(entry)
+    return (new_entries, errors)
 
 
 def create_open_directives(new_accounts, entries):
