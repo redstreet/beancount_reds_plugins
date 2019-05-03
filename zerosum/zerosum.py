@@ -168,6 +168,7 @@ from beancount.ops import holdings
 from beancount.parser import options
 from beancount.parser import printer
 
+DEBUG = 0
 
 __plugins__ = ('zerosum',)
 
@@ -295,8 +296,9 @@ def zerosum(entries, options_map, config):
     new_open_entries = create_open_directives(new_accounts, entries)
 
     elapsed_time = time.time() - start_time
-    print("Zerosum [{:.1f}s]: {}/{} postings matched. {} multiple matches. {} new accounts added.".format(
-        elapsed_time, match_count, zerosum_postings_count, multiple_match_count, len(new_open_entries)))
+    if DEBUG:
+        print("Zerosum [{:.1f}s]: {}/{} postings matched. {} multiple matches. {} new accounts added.".format(
+            elapsed_time, match_count, zerosum_postings_count, multiple_match_count, len(new_open_entries)))
     
     # it's important to preserve and return 'entries', which was the input
     # list. This way, we won't inadvertantly add/remove entries from the

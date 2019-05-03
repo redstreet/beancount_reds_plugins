@@ -12,6 +12,7 @@ from beancount.ops import holdings
 from beancount.parser import options
 from beancount.parser import printer
 
+DEBUG = 0
 
 __plugins__ = ('rename_accounts',)
 
@@ -63,7 +64,8 @@ def rename_accounts(entries, options_map, config):
                         new_accounts.append(acc)
 
     new_open_entries = create_open_directives(new_accounts, entries)
-    print("Rename accounts: {} postings renamed.".format(rename_count))
+    if DEBUG:
+        print("Rename accounts: {} postings renamed.".format(rename_count))
     return(new_open_entries + entries, errors)
 
 

@@ -16,6 +16,7 @@ import datetime
 import string
 import random
 
+DEBUG = 0
 
 __plugins__ = ['effective_date']
 
@@ -143,7 +144,8 @@ def effective_date(entries, options_map, config):
     # for e in new_entries:
     #     printer.print_entry(e)
 
-    print("effective_date: {} entries inserted.".format(modcount))
+    if DEBUG:
+        print("effective_date: {} entries inserted.".format(modcount))
 
     new_open_entries = create_open_directives(new_accounts, entries)
     retval = new_open_entries + new_entries + filtered_entries
