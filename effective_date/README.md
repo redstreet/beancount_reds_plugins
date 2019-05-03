@@ -46,7 +46,7 @@ The plugin also changes this:
 ````
 
 
-    into this:
+into this:
 
 
 ````
