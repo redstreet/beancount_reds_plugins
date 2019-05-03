@@ -224,7 +224,7 @@ def zerosum(entries, options_map, config):
         raise RuntimeError("Invalid plugin configuration: should be a single dict.")
 
     zs_accounts_list = config_obj.pop('zerosum_accounts', {})
-    (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ())
+    (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ('', ''))
 
     errors = []
     new_accounts = []
