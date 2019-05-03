@@ -166,7 +166,7 @@ from beancount.core import getters
 
 DEBUG = 0
 
-__plugins__ = ('zerosum', 'mark_unmatched',)
+__plugins__ = ('zerosum', 'flag_unmatched',)
 
 # def pretty_print_transaction(t):
 #     print(t.date)
@@ -210,6 +210,9 @@ def zerosum(entries, options_map, config):
         'account_name_replace' (see below)
 
       - 'account_name_replace': tuple of two entries. See above
+
+      - 'flag_unmatched': bool to control whether to flag unmatched
+        transactions as warnings (default off)
 
       See example for more info.
 
@@ -301,12 +304,16 @@ def zerosum(entries, options_map, config):
     return(new_open_entries + entries, errors)
 
 
-def mark_unmatched(entries, unused_options_map, config):
-    '''Iterate again, to mark unmatched entries'''
+def flag_unmatched(entries, unused_options_map, config):
+    '''Iterate again, to flag unmatched entries'''
+
+    config_obj = literal_eval(config)
+    if not config_obj.get('flag_unmatched'):
+        return (entries, [])
 
     new_entries = []
     errors = []
-    zs_accounts = literal_eval(config)['zerosum_accounts'].keys()
+    zs_accounts = config_obj['zerosum_accounts'].keys()
     for entry in entries:
         if isinstance(entry, data.Transaction):
             for posting in entry.postings:
