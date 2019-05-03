@@ -165,7 +165,6 @@ from beancount.core import account
 from beancount.core import getters
 from beancount.core import flags
 from beancount.ops import holdings
-from beancount.ops import prices
 from beancount.parser import options
 from beancount.parser import printer
 
