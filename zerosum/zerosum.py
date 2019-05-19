@@ -154,11 +154,19 @@ of accounts on which the plugin should operate. The values are
 the plugin should move matched postings, and the date_range is the range over
 which to check for matches for that account.
 
+TODO:
+- allow config using account metadata
+- take plugin params from metadata (including date_range)
+- optionally create a linking metadata (or a beancount-link) between matches
+
 """
 
 import time
 import collections
 from ast import literal_eval
+import datetime
+from collections import defaultdict
+import cProfile, pstats
 
 from beancount.core import data
 from beancount.core import flags
@@ -167,13 +175,6 @@ from beancount.core import getters
 DEBUG = 0
 
 __plugins__ = ('zerosum', 'flag_unmatched',)
-
-# def pretty_print_transaction(t):
-#     print(t.date)
-#     for p in t.postings:
-#         # print("            ", p.account, p.position)  # deprecated
-#     print("")
-
 
 # replace the account on a given posting with a new account
 def account_replace(txn, posting, new_account):
@@ -186,11 +187,6 @@ def account_replace(txn, posting, new_account):
 
 ZerosumError = collections.namedtuple('ZerosumError', 'source message entry')
 
-# TODO:
-# - if account metadata has 'zerosumaccountcheck' set to true, then check it
-# - take plugin params from metadata (including date_range)
-# - add 'Matched' accounts to definition list automatically from plugin
-# - create a beancount-link between matches for debugging?
 
 
 def zerosum(entries, options_map, config):
@@ -221,87 +217,77 @@ def zerosum(entries, options_map, config):
 
     """
 
-    start_time = time.time()
-    config_obj = literal_eval(config)
-    if not isinstance(config_obj, dict):
-        raise RuntimeError("Invalid plugin configuration: should be a single dict.")
+    def match_forward():
+        max_date = txn.date + datetime.timedelta(days=date_range)
 
+        for j in range(i, len(zerosum_txns)):
+            t = zerosum_txns[j]
+            if t.date > max_date:
+                return None
+            for p in t.postings:
+                if (abs(p.units.number + posting.units.number) < EPSILON_DELTA
+                    and p.account == zs_account):
+                    return (p, t)
+        return None
+
+    if DEBUG:
+        pr = cProfile.Profile()
+        pr.enable()
+        start_time = time.time()
+
+    config_obj = literal_eval(config) #TODO: error check
     zs_accounts_list = config_obj.pop('zerosum_accounts', {})
     (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ('', ''))
 
-    errors = []
-    new_accounts = []
+    new_accounts = set()
     zerosum_postings_count = 0
     match_count = 0
-    multiple_match_count = 0
     EPSILON_DELTA = 0.0099
-    for zs_account, account_config in zs_accounts_list.items():
 
-        date_range = account_config[1]
-        zerosum_txns = []
-        non_zerosum_entries = []
-        # this loop bins each entry into either zerosum_txns or non_zerosum_entries
-        for entry in entries:
-            outlist = (zerosum_txns
-                       if (isinstance(entry, data.Transaction)
-                           and any(posting.account == zs_account for posting in entry.postings))
-                       else non_zerosum_entries)
-            outlist.append(entry)
-
-        # algorithm: iterate through zerosum_txns (zerosum transactions). For each
-        # transaction, for each of its postings involving zs_account, try to find a match
-        # across all the other zerosum_txns. If a match is found, replace the account name
-        # with the matched account name for the the pair of postings. This effectively
-        # moves matched transactions to a different account
-
-        # This would be easier if we could ignore transactions and just
-        # iterate across posting. But we cannot do so because postings are
-        # tuples, and therefore immutable: we have to replace a posting with a
-        # newly created posting in order to make a change to its account when
-        # a matching pair is found. If we were iterating across postings, we
-        # would be adding/removing from the posting list we are iterating
-        # through, which is not a good idea.
-
-        for txn in zerosum_txns:
-            for posting in txn.postings:
-                if posting.account == zs_account:
+    # Build zerosum_txns_all for all zs_accounts, so we iterate through entries only once (for performance)
+    zerosum_txns_all = defaultdict(list)
+    for entry in entries:
+        if isinstance(entry, data.Transaction):
+            for zs_account, _ in zs_accounts_list.items():
+                if any(posting.account == zs_account for posting in entry.postings):
+                    zerosum_txns_all[zs_account].append(entry)
                     zerosum_postings_count += 1
-                    matches = [
-                        (p, t) for t in zerosum_txns for p in t.postings
-                        if (p.account == zs_account
-                            and abs(p.units.number + posting.units.number) < EPSILON_DELTA
-                            and abs((t.date - txn.date).days) <= date_range)
-                    ]
 
-                    # replace accounts in the pair
-                    if len(matches) >= 1:
-                        match_count += 1
-                        if len(matches) > 1:  # TODO: check if closest date is
-                            # picked. zerosum_txns is sorted by date, so the
-                            # earliest posting might be picked, which might not
-                            # be the same as the closest
-                            multiple_match_count += 1
+    for zs_account, (target_account, date_range) in zs_accounts_list.items():
+        if not target_account:
+            target_account = zs_account.replace(account_name_from, account_name_to)
+        zerosum_txns = zerosum_txns_all[zs_account]
 
-                        target_account = account_config[0]
-                        if not account_config[0]:
-                            target_account = zs_account.replace(account_name_from, account_name_to)
-                        account_replace(txn,           posting,       target_account)  # NOQA
-                        account_replace(matches[0][1], matches[0][0], target_account)
-                        if target_account not in new_accounts:
-                            new_accounts.append(target_account)
+        # for each posting in each transaction, attempt to find a match. Replace account names in each each
+        # matched posting pair
+        for i in range(len(zerosum_txns)):
+            txn = zerosum_txns[i]
+            reprocess = True
+            while reprocess: # necessary since this entry's postings changes under us when we find a match
+                for posting in txn.postings:
+                    reprocess = False
+                    if posting.account == zs_account:
+                        match = match_forward()
+                        if match:
+                            reprocess = True
+                            # print('Match:', txn.date, match[1].date, match[1].date - txn.date,
+                            #         posting.units, posting.meta['lineno'], match[0].meta['lineno'])
+                            match_count += 1
+                            account_replace(txn,      posting,  target_account)
+                            account_replace(match[1], match[0], target_account)
+                            new_accounts.add(target_account)
+                            break
 
-    # TODO: should ideally track account specific earliest date
     new_open_entries = create_open_directives(new_accounts, entries)
 
-    elapsed_time = time.time() - start_time
     if DEBUG:
-        print("Zerosum [{:.1f}s]: {}/{} postings matched. {} multiple matches. {} new accounts added.".format(
-            elapsed_time, match_count, zerosum_postings_count, multiple_match_count, len(new_open_entries)))
+        elapsed_time = time.time() - start_time
+        print("Zerosum [{:.1f}s]: {}/{} postings matched. Considered {} entries. {} new accounts added.".format(
+            elapsed_time, match_count*2, zerosum_postings_count, len(entries), len(new_open_entries)))
+        pr.disable()
+        pr.dump_stats('out.profile')
 
-    # it's important to preserve and return 'entries', which was the input
-    # list. This way, we won't inadvertantly add/remove entries from the
-    # original list of entries.
-    return(new_open_entries + entries, errors)
+    return entries + new_open_entries, []
 
 
 def flag_unmatched(entries, unused_options_map, config):
@@ -312,7 +298,6 @@ def flag_unmatched(entries, unused_options_map, config):
         return (entries, [])
 
     new_entries = []
-    errors = []
     zs_accounts = config_obj['zerosum_accounts'].keys()
     for entry in entries:
         if isinstance(entry, data.Transaction):
@@ -321,7 +306,7 @@ def flag_unmatched(entries, unused_options_map, config):
                     entry = entry._replace(flag=flags.FLAG_WARNING)
                     break
         new_entries.append(entry)
-    return (new_entries, errors)
+    return new_entries, []
 
 
 def create_open_directives(new_accounts, entries):
@@ -329,6 +314,8 @@ def create_open_directives(new_accounts, entries):
     # Ensure that the accounts we're going to use to book the postings exist, by
     # creating open entries for those that we generated that weren't already
     # existing accounts.
+
+    # TODO: should ideally track account specific earliest date. Using this as a proxy
     earliest_date = entries[0].date
     open_entries = getters.get_account_open_close(entries)
     new_open_entries = []
@@ -338,3 +325,4 @@ def create_open_directives(new_accounts, entries):
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
     return(new_open_entries)
+

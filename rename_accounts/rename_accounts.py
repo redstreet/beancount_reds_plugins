@@ -1,6 +1,7 @@
 """See accompanying README.md"""
 
 import collections
+import time
 
 from beancount.core.amount import ZERO
 from beancount.core import data
@@ -47,6 +48,7 @@ def rename_accounts(entries, options_map, config):
     Returns:
       A tuple of entries and errors. """
 
+    start_time = time.time()
     rename_count = 0
     new_accounts = []
     errors = []
@@ -65,7 +67,8 @@ def rename_accounts(entries, options_map, config):
 
     new_open_entries = create_open_directives(new_accounts, entries)
     if DEBUG:
-        print("Rename accounts: {} postings renamed.".format(rename_count))
+        elapsed_time = time.time() - start_time
+        print("Rename accounts [{:.1f}s]: {} postings renamed.".format(elapsed_time, rename_count))
     return(new_open_entries + entries, errors)
 
 

@@ -13,6 +13,7 @@ from beancount.ops import holdings
 from beancount.parser import options
 from beancount.parser import printer
 import datetime
+import time
 import string
 import random
 
@@ -70,6 +71,8 @@ def effective_date(entries, options_map, config):
       A tuple of entries and errors.
 
     """
+
+    start_time = time.time()
     errors = []
 
     interesting_entries = []
@@ -145,7 +148,8 @@ def effective_date(entries, options_map, config):
     #     printer.print_entry(e)
 
     if DEBUG:
-        print("effective_date: {} entries inserted.".format(modcount))
+        elapsed_time = time.time() - start_time
+        print("effective_date [{:.1f}s]: {} entries inserted.".format(elapsed_time, modcount))
 
     new_open_entries = create_open_directives(new_accounts, entries)
     retval = new_open_entries + new_entries + filtered_entries
