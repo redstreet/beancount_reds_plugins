@@ -217,32 +217,6 @@ def zerosum(entries, options_map, config):
 
     """
 
-    # def find_matching_postings():
-    #     for t in zerosum_txns:
-    #         if abs((t.date - txn.date).days) <= date_range:
-    #             for p in t.postings:
-    #                 if (p.account == zs_account
-    #                         and abs(p.units.number + posting.units.number) < EPSILON_DELTA):
-    #                     if t.date < txn.date:
-    #                         print(t.date, txn.date)
-    #                     # TODO: why does this occur?
-    #                     return (p, t)
-    #         elif t.date > txn.date:
-    #             break
-    #     return None
-
-
-    # def find_matching_postings():
-    #     for t in zerosum_txns:
-    #         if abs((t.date - txn.date).days) <= date_range:
-    #             for p in t.postings:
-    #                 if (p.account == zs_account
-    #                         and abs(p.units.number + posting.units.number) < EPSILON_DELTA):
-    #                     return (p, t)
-    #         elif t.date > txn.date:
-    #             return None
-    #     return None
-
     def match_forward():
         max_date = txn.date + datetime.timedelta(days=date_range)
 
@@ -251,8 +225,8 @@ def zerosum(entries, options_map, config):
             if t.date > max_date:
                 return None
             for p in t.postings:
-                if (p.account == zs_account
-                        and abs(p.units.number + posting.units.number) < EPSILON_DELTA):
+                if (abs(p.units.number + posting.units.number) < EPSILON_DELTA
+                    and p.account == zs_account):
                     return (p, t)
         return None
 
@@ -308,7 +282,7 @@ def zerosum(entries, options_map, config):
 
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Zerosum [{:.1f}s]: {}/{} postings matched out of {} entries. {} new accounts added.".format(
+        print("Zerosum [{:.1f}s]: {}/{} postings matched. Considered {} entries. {} new accounts added.".format(
             elapsed_time, match_count*2, zerosum_postings_count, len(entries), len(new_open_entries)))
         pr.disable()
         pr.dump_stats('out.profile')
