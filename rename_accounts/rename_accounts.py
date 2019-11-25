@@ -12,6 +12,7 @@ from beancount.core import flags
 from beancount.ops import holdings
 from beancount.parser import options
 from beancount.parser import printer
+from ast import literal_eval
 
 DEBUG = 0
 
@@ -42,8 +43,7 @@ def rename_accounts(entries, options_map, config):
       options_map: a dict of options parsed from the file (not used)
 
       config: A configuration string, which is intended to be a Python dict
-      mapping zerosum account name -> (matched zerosum account name,
-      date_range). See example for more info.
+      listing renames. Eg: "{'Expenses:Taxes' : 'Income:Taxes'}"
 
     Returns:
       A tuple of entries and errors. """
@@ -53,17 +53,20 @@ def rename_accounts(entries, options_map, config):
     new_accounts = []
     errors = []
 
+    renames = literal_eval(config) #TODO: error check
 
     for entry in entries:
         if isinstance(entry, data.Transaction):
             postings = list(entry.postings)
             for posting in postings:
-                if 'Expenses:Taxes' in posting.account:
-                    acc = posting.account.replace("Expenses", "Income")
-                    account_replace(entry, posting, acc)
-                    rename_count += 1
-                    if acc not in new_accounts:
-                        new_accounts.append(acc)
+                account = posting.account
+                if any(r in account for r in renames):
+                    for r in renames:
+                        account = account.replace(r, renames[r])
+                        rename_count += 1
+                        if account not in new_accounts:
+                            new_accounts.append(account)
+                    account_replace(entry, posting, account)
 
     new_open_entries = create_open_directives(new_accounts, entries)
     if DEBUG:

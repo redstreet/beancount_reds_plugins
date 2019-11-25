@@ -184,11 +184,6 @@ def account_replace(txn, posting, new_account):
     txn.postings.remove(posting)
     txn.postings.append(new_posting)
 
-
-ZerosumError = collections.namedtuple('ZerosumError', 'source message entry')
-
-
-
 def zerosum(entries, options_map, config):
     """Insert entries for unmatched transactions in zero-sum accounts.
 
@@ -217,7 +212,8 @@ def zerosum(entries, options_map, config):
 
     """
 
-    def match_forward():
+    def find_match():
+        '''Look forward to find a match, until date range is exceeded'''
         max_date = txn.date + datetime.timedelta(days=date_range)
 
         for j in range(i, len(zerosum_txns)):
@@ -231,8 +227,8 @@ def zerosum(entries, options_map, config):
         return None
 
     if DEBUG:
-        pr = cProfile.Profile()
-        pr.enable()
+        # pr = cProfile.Profile()
+        # pr.enable()
         start_time = time.time()
 
     config_obj = literal_eval(config) #TODO: error check
@@ -252,6 +248,7 @@ def zerosum(entries, options_map, config):
                 if any(posting.account == zs_account for posting in entry.postings):
                     zerosum_txns_all[zs_account].append(entry)
                     zerosum_postings_count += 1
+                    # count doesn't account for multiple matching postings, but is close enough
 
     for zs_account, (target_account, date_range) in zs_accounts_list.items():
         if not target_account:
@@ -267,25 +264,25 @@ def zerosum(entries, options_map, config):
                 for posting in txn.postings:
                     reprocess = False
                     if posting.account == zs_account:
-                        match = match_forward()
+                        match = find_match()
                         if match:
-                            reprocess = True
                             # print('Match:', txn.date, match[1].date, match[1].date - txn.date,
                             #         posting.units, posting.meta['lineno'], match[0].meta['lineno'])
                             match_count += 1
                             account_replace(txn,      posting,  target_account)
                             account_replace(match[1], match[0], target_account)
                             new_accounts.add(target_account)
+                            reprocess = True
                             break
 
     new_open_entries = create_open_directives(new_accounts, entries)
 
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Zerosum [{:.1f}s]: {}/{} postings matched. Considered {} entries. {} new accounts added.".format(
+        print("Zerosum [{:.1f}s]: {}/{} postings matched from {} transactions. {} new accounts added.".format(
             elapsed_time, match_count*2, zerosum_postings_count, len(entries), len(new_open_entries)))
-        pr.disable()
-        pr.dump_stats('out.profile')
+        # pr.disable()
+        # pr.dump_stats('out.profile')
 
     return entries + new_open_entries, []
 
