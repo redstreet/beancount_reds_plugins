@@ -9,7 +9,7 @@ transactions. Renames in this plugin can be easily turned on or off (by manually
 commenting them out in your beancount plugin directive) depending on the type of
 reporting desired. Here is an example where this is useful:
 
-1. Expenses:Taxes -> Income:Taxes
+`Expenses:Taxes -> Income:Taxes`
 
 This rename allows taxes to avoid cluttering and dominating the Expense reports (and
 thus rendering them less useful), and simultaneously reports net (after-tax) income.
@@ -20,3 +20,19 @@ Of course, the right set of queries can also give you these reports renaming. Ho
 renaming allows you to take advantage of standard, built-in reporting tools. For
 example, fava's treemap/sunburst expense plots would not work out of the box on a
 custom query. Renaming solves this problem.
+
+
+Configuring
+-----------
+
+
+Example to include in your beancount file:
+
+```python
+plugin "plugins.beancount_plugins_redstreet.rename_accounts.rename_accounts" "{
+ 'Expenses:Taxes' : 'Income:Taxes',
+ 'Expenses:Employer-Paid-Benefits' : 'Income:Employer-Paid-Benefits',
+ }"
+```
+
+This assumes you've checked out the repo to: `plugins/beancount_plugins_redstreet`
