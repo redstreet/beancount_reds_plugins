@@ -25,7 +25,6 @@ custom query. Renaming solves this problem.
 Configuring
 -----------
 
-
 Example to include in your beancount file:
 
 ```python
@@ -36,3 +35,10 @@ plugin "plugins.beancount_plugins_redstreet.rename_accounts.rename_accounts" "{
 ```
 
 This assumes you've checked out the repo to: `plugins/beancount_plugins_redstreet`
+
+The strings on the left are string-matched against accounts. `Expenses:Taxes:Federal`
+will be renamed to `Income:Taxes:Federal` in the example above.
+
+Account opening entries will be added to beancount automatically if needed. Continuing
+the example above, an open directive will automatically be inserted for
+`Income:Taxes:Federal` if needed.
