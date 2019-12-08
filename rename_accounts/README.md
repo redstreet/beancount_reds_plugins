@@ -1,4 +1,4 @@
-Effective dates plugin for Beancount
+Rename accounts plugin for Beancount
 ------------------------------------
 
 Plugin to rename accounts. Takes a list of account pairs to rename. Here are some
