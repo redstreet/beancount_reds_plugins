@@ -50,7 +50,6 @@ def effective_date(entries, options_map, config):
     )------
 
     into this:
-
     ------(
     2014-02-01 "Estimated taxes for 2013"
       Liabilities:Mastercard     -2000 USD
@@ -60,6 +59,27 @@ def effective_date(entries, options_map, config):
       Liabilities:Hold:Taxes:Federal    -2000 USD
       Expenses:Taxes:Federal    2000 USD
     )------
+
+
+    # Example 2: realizing income earlier (eg: for taxes, accounting, etc.):
+    ------(
+    2017-01-03 "Paycheck"
+      effective_date: 2016-12-31
+      Income:Employment    -2000 USD
+      Assets:Bank  2000 USD
+    )------
+
+    into this:
+    ------(
+    2016-12-31 "Paycheck"
+      Income:Employment    -2000 USD
+      Assets:Hold:Income:Employment    2000 USD
+
+    2014-02-01 "Paycheck"
+      Assets:Hold:Income:Employment    -2000 USD
+      Assets:Bank  2000 USD
+    )------
+
 
     Args:
       entries: a list of entry instances
@@ -100,25 +120,35 @@ def effective_date(entries, options_map, config):
         modified_entry_postings = []
         effective_date_entry_postings = []
         found = False
+        accts_to_split = {
+                'Expenses': {'earlier': 'Liabilities:Hold', 'later': 'Assets:Hold'},
+                'Income':   {'earlier': 'Assets:Hold', 'later': 'Liabilities:Hold'},
+                }
         for posting in entry.postings:
-            if "Expenses" in posting.account:
+            if any(acct in posting.account for acct in accts_to_split):
+                found_acct = ''
+                for acct in accts_to_split:
+                    if posting.account.startswith(acct):
+                        found_acct = acct
                 found = True
                 modcount += 1
 
+                holding_account = accts_to_split[found_acct]['earlier']
                 if entry.meta['effective_date'] > entry.date:
-                    holding_account = "Assets:Hold"
-                else:
-                    holding_account = "Liabilities:Hold"
-                new_posting = posting._replace(account=posting.account.replace('Expenses', holding_account))
+                    holding_account = accts_to_split[found_acct]['later']
+                new_posting = posting._replace(account=posting.account.replace(found_acct, holding_account))
                 if new_posting.account not in new_accounts:
                     new_accounts.append(new_posting.account)
                 modified_entry_postings += [new_posting]
                 effective_date_entry_postings  += [posting]
 
-                effective_date_entry_postings  += [posting._replace(account=posting.account.replace('Expenses', holding_account), units=-posting.units)]
+                effective_date_entry_postings  += [posting._replace(
+                    account=posting.account.replace(found_acct, holding_account),
+                    units=-posting.units)]
 
                 if posting.account not in new_accounts:
                     new_accounts.append(posting.account)
+
             else:
                 modified_entry_postings += [posting]
 
@@ -135,7 +165,9 @@ def effective_date(entries, options_map, config):
             #         postings=effective_date_entry_postings,
             #         narration = effective_date_entry_narration,
             #         links=(entry.links or set()) | set([link]))
+            new_meta = {'original_date': entry.date}
             effective_date_entry = entry._replace(date=entry.meta['effective_date'],
+                    meta={**entry.meta, **new_meta},
                     postings=effective_date_entry_postings,
                     narration = effective_date_entry_narration,
                     links=(entry.links or set()) | set([link]))
@@ -169,3 +201,12 @@ def create_open_directives(new_accounts, entries):
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
     return(new_open_entries)
+
+# TODO
+# -----------------------------------------------------------------------------------------------------------
+# - handle >=3 posting transactions
+# 2010-01-02 * "Income"
+#   effective_date: 2016-12-31
+#   Assets:Banks   100
+#   Income:Source  -110
+#   Expenses:Income-Tax 10
