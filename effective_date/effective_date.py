@@ -20,7 +20,7 @@ import random
 
 DEBUG = 0
 
-__plugins__ = ['effective_date_transaction', 'effective_date']
+__plugins__ = ['effective_date', 'effective_date_transaction']
 
 
 # TODO:
@@ -56,7 +56,9 @@ LINK_FORMAT = 'effective-date-link-{}'
 
 
 def has_valid_effective_date(posting):
-    return 'effective_date' in posting.meta and type(posting.meta['effective_date']) == datetime.date
+    return posting.meta is not None and \
+             'effective_date' in posting.meta and \
+             type(posting.meta['effective_date']) == datetime.date
 
 def has_posting_with_valid_effective_date(entry):
     for posting in entry.postings:
@@ -75,6 +77,7 @@ def create_new_effective_date_entry(entry, date, hold_posting, original_posting)
             meta={**entry.meta, **new_meta},
             postings=[cleaned(hold_posting), cleaned(original_posting)])
     return effective_date_entry
+
 
 
 def effective_date(entries, options_map, config):
@@ -102,11 +105,11 @@ def effective_date(entries, options_map, config):
         else:
             filtered_entries.append(entry)
 
-    if DEBUG:
-        print("------")
-        for e in interesting_entries:
-            printer.print_entry(e)
-        print("------")
+    # if DEBUG:
+    #     print("------")
+    #     for e in interesting_entries:
+    #         printer.print_entry(e)
+    #     print("------")
 
     accts_to_split = {
             'Expenses': {'earlier': 'Liabilities:Hold:Expenses', 'later': 'Assets:Hold:Expenses'},
@@ -144,14 +147,14 @@ def effective_date(entries, options_map, config):
         new_entries.append(modified_entry)
 
 
-    if DEBUG:
-        print("Output results:")
-        for e in new_entries:
-            printer.print_entry(e)
+    # if DEBUG:
+    #     print("Output results:")
+    #     for e in new_entries:
+    #         printer.print_entry(e)
 
     if DEBUG:
         elapsed_time = time.time() - start_time
-        # print("effective_date [{:.1f}s]: {} entries inserted.".format(elapsed_time, modcount))
+        print("effective_date [{:.1f}s]: {} entries inserted.".format(elapsed_time, len(new_entries)))
 
     new_open_entries = create_open_directives(new_accounts, entries)
     retval = new_open_entries + new_entries + filtered_entries
@@ -302,13 +305,15 @@ def effective_date_transaction(entries, options_map, config):
 
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("effective_date [{:.1f}s]: {} entries inserted.".format(elapsed_time, modcount))
+        print("effective_date_transaction [{:.1f}s]: {} entries inserted.".format(elapsed_time, modcount))
 
     new_open_entries = create_open_directives(new_accounts, entries)
     retval = new_open_entries + new_entries + filtered_entries
     return(retval, errors)
 
 def create_open_directives(new_accounts, entries):
+    if not entries:
+        return []
     meta = data.new_metadata('<zerosum>', 0)
     # Ensure that the accounts we're going to use to book the postings exist, by
     # creating open entries for those that we generated that weren't already
@@ -321,7 +326,7 @@ def create_open_directives(new_accounts, entries):
             meta = data.new_metadata(meta['filename'], 0)
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
-    return(new_open_entries)
+    return new_open_entries
 
 # TODO
 # -----------------------------------------------------------------------------------------------------------
