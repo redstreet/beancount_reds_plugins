@@ -59,9 +59,5 @@ into this:
       Expenses:Taxes:Federal    2000 USD
 ````
 
-Future work:
-------------
-Currently, this plugin has many limitations. In particular:
-- works reliably only for transactions with two legs
-- at least one leg must be booked to an Expense account
-
+Limitations / future work:
+--------------------------
