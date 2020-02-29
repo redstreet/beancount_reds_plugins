@@ -21,8 +21,10 @@ import random
 
 DEBUG = 0
 
-__plugins__ = ['effective_date', 'effective_date_transaction']
+__plugins__ = ['effective_date']
 
+# to enable the older transaction-level hacky plugin, now renamed to effective_date_transaction
+# __plugins__ = ['effective_date', 'effective_date_transaction']
 
 # TODO:
 # - open newly needed accounts automatically
