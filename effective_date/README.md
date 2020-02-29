@@ -1,8 +1,10 @@
 Effective dates plugin for Beancount
 ------------------------------------
 
-An entire Beancount transaction must occur on the same day, but in some instances, one
-or more legs must be booked to a different date. For example:
+Double entry bookkeeping requires each transaction to occur instantaneously in time. In
+Beancount, that translates to each transaction occuring on a single date. However, it is
+occasionally useful to view different legs of a transaction occuring across difference
+periods of time. For example, consider:
 
 ````
 2014-12-15 * "Annual Insurance payment for 2015"
@@ -10,54 +12,45 @@ or more legs must be booked to a different date. For example:
     Expenses:Insurance
 ````
 
-Here, the payment was made in Dec 2014 for an expense to be booked to 2015. In this
-case, one would normally have to do:
+Here, the payment was made in Dec 2014 for an expense to be booked to 2015. To reflect
+this, one could book it thus:
 
 ````
 2014-12-15 * "Annual Insurance payment for 2015"
     Liabilities:Credit-Card   100 USD
     Assets:Hold:Insurance
 
-
 2015-01-01 * "Annual Insurance payment for 2015"
     Assets:Hold:Insurance  -100 USD
     Expenses:Insurance
 ````
 
+The expense is booked in 2015, while the credit card transaction, in 2014. The
+"Assets:Hold:Insurance" holds the money for the period in between.
+
 This plugin automates the process above. One can simply enter a single transaction with
-an 'effective_date' metadata field:
+an 'effective_date' metadata field for the posting (not the transaction) that needs to
+occur later (or earlier):
 
 ````
 2014-12-15 * "Annual Insurance payment for 2015"
-    effective_date: 2015-01-01
     Liabilities:Credit-Card   100 USD
     Expenses:Insurance
+      effective_date: 2015-01-01
 ````
 
-
-The plugin also changes this:
-
+The plugin also allows for legs to occur on multiple different dates. For example:
 
 ````
-    2014-02-01 "Estimated taxes for 2013"
-      effective_date: 2013-12-31
-      Liabilities:Mastercard    -2000 USD
-      Expenses:Taxes:Federal  2000 USD
+2015-02-01 * "Car insurance: 3 months"
+ Liabilities:Mastercard    -600 USD
+ Expenses:Car:Insurance     200 USD
+   effective_date: 2015-03-01
+ Expenses:Car:Insurance     200 USD
+   effective_date: 2015-04-01
+ Expenses:Car:Insurance     200 USD
+   effective_date: 2015-05-01
 ````
 
-
-into this:
-
-
-````
-    2014-02-01 "Estimated taxes for 2013"
-      Liabilities:Mastercard     -2000 USD
-      Liabilities:Hold:Taxes:Federal 2000 USD
-
-    2013-12-31 "Estimated taxes for 2013"
-      Liabilities:Hold:Taxes:Federal    -2000 USD
-      Expenses:Taxes:Federal    2000 USD
-````
-
-Limitations / future work:
---------------------------
+The examples.bc shows you how the plugin can be configured for your choice of holding
+accounts.
