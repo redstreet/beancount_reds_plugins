@@ -30,13 +30,25 @@ The expense is booked in 2015, while the credit card transaction, in 2014. The
 
 This plugin automates the process above. One can simply enter a single transaction with
 an 'effective_date' metadata field for the posting (not the transaction) that needs to
-occur later (or earlier):
+occur later (or earlier). This keeps the source clean and intuitive:
 
 ````
 2014-12-15 * "Annual Insurance payment for 2015"
     Liabilities:Credit-Card   100 USD
     Expenses:Insurance
       effective_date: 2015-01-01
+````
+gets rewritten into:
+````
+2014-12-15 * "Annual Insurance payment for 2015" ^edate-141215-xlu
+    Liabilities:Credit-Card   100 USD
+    Assets:Hold:Insurance
+      effective_date: 2015-01-01
+
+2015-01-01 * "Annual Insurance payment for 2015" ^edate-141215-xlu
+    original_date: 2014-12-15
+    Assets:Hold:Insurance  -100 USD
+    Expenses:Insurance
 ````
 
 The plugin also allows for legs to occur on multiple different dates. For example:
@@ -52,5 +64,14 @@ The plugin also allows for legs to occur on multiple different dates. For exampl
    effective_date: 2015-05-01
 ````
 
-The examples.bc shows you how the plugin can be configured for your choice of holding
-accounts.
+
+## Features
+- an `original_date` metadata is inserted into newly created transactions
+- the `effective_date` per-posting metadata is left untouched. This way, the original
+  and new entries both have pointers back to each other
+- a beancount link links the transactions set. It's human readable: ^edate-141215-xlu
+  means the original transaction was on 2014-12-15
+
+See examples.bc for more examples, and for how to configure the plugin with your choice
+of holding accounts.
+

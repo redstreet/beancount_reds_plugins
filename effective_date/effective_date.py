@@ -47,7 +47,7 @@ __plugins__ = ['effective_date']
 #   effective_date: 2013-12-31
 
 
-LINK_FORMAT = 'edate-{}'
+LINK_FORMAT = 'edate-{date}-{random}'
 
 
 def has_valid_effective_date(posting):
@@ -121,8 +121,9 @@ def effective_date(entries, options_map, config):
     # entries, and thus links each set of effective date entries
     interesting_entries_linked = []
     for entry in interesting_entries:
-        rand_string = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
-        link = LINK_FORMAT.format(rand_string)
+        rand_string = ''.join(random.choice(string.ascii_lowercase) for i in range(3))
+        date = str(entry.date).replace('-', '')[2:]
+        link = LINK_FORMAT.format(date=str(date), random=rand_string)
         new_entry = entry._replace(links=(entry.links or set()) | set([link]))
         interesting_entries_linked.append(new_entry)
 
