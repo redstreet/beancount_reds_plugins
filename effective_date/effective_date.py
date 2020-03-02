@@ -1,9 +1,6 @@
-"""Plugin to implement effective dates. Originally intended for tax purpuses,
-but can now be used for any generalized case."""
-
+"""Beancount plugin to implement per-posting effective dates. See README.md for more."""
 
 import collections
-
 from beancount.core.amount import ZERO
 from beancount.core import data
 from beancount.core import account
@@ -22,33 +19,10 @@ import random
 DEBUG = 0
 
 __plugins__ = ['effective_date']
-
 # to enable the older transaction-level hacky plugin, now renamed to effective_date_transaction
 # __plugins__ = ['effective_date', 'effective_date_transaction']
 
-# TODO:
-# - open newly needed accounts automatically
-
-# - when a posting to an "Expense:" account has a date that is prior to the
-# transaction date, the amount outstanding between the two dates likely needs
-# to be a booked to a Liabilities:Hold account (same as the example above)
-
-# - when a posting to an "Expense:" account has a date that occurrs after the
-# transaction date, the amount outstanding between the two dates likely needs
-# to be booked to an Assets:Hold account.
-
-# Bug:
-# below will fail because expense account was opened too late:
-#2014-01-01 open Expenses:Taxes:Federal
-#
-#2014-02-01 * "Estimated taxes for 2013"
-# Liabilities:Mastercard    -2000 USD
-# Expenses:Taxes:Federal  2000 USD
-#   effective_date: 2013-12-31
-
-
 LINK_FORMAT = 'edate-{date}-{random}'
-
 
 def has_valid_effective_date(posting):
     return posting.meta is not None and \
@@ -339,9 +313,11 @@ def create_open_directives(new_accounts, entries):
 
 # TODO
 # -----------------------------------------------------------------------------------------------------------
-# - handle >=3 posting transactions
-# 2010-01-02 * "Income"
-#   effective_date: 2016-12-31
-#   Assets:Banks   100
-#   Income:Source  -110
-#   Expenses:Income-Tax 10
+# Bug:
+# below will fail because expense account was opened too late in the source:
+#2014-01-01 open Expenses:Taxes:Federal
+#
+#2014-02-01 * "Estimated taxes for 2013"
+# Liabilities:Mastercard    -2000 USD
+# Expenses:Taxes:Federal  2000 USD
+#   effective_date: 2013-12-31
