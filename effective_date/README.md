@@ -2,8 +2,8 @@ Effective dates plugin for Beancount
 ------------------------------------
 
 Double entry bookkeeping requires each transaction to occur instantaneously in time. In
-Beancount, that translates to each transaction occuring on a single date. However, it is
-occasionally useful to view different legs of a transaction occuring across difference
+Beancount, that translates to each transaction occurring on a single date. However, it is
+occasionally useful to view different legs of a transaction occurring across difference
 periods of time. For example, consider:
 
 ````
