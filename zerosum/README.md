@@ -48,7 +48,7 @@ correctly.
 scripts don't have to figure out where a transfer goes, and can simply assign transfers
 to  ZeroSumAccount:Transfers
 
-- Errors can be identifed easily since the ZeroSumAccount:Transfers will sum to a
+- Errors can be identified easily since the ZeroSumAccount:Transfers will sum to a
 non-zero value.
 
 I've found such "zerosum" accounts to be very useful in several other scenarios as well.
