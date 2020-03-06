@@ -221,8 +221,11 @@ account (Assets:Reimbursements-Received:Workplace), while the one not received
 always sum up to zero.
 
 
-## References:
+## References
+
 [1] Beancount: https://bitbucket.org/blais/beancount/, http://furius.ca/beancount/
+
 [2] https://groups.google.com/d/msg/beancount/z9sPboW4U3c/UfJbIVzwmpMJ
+
 [3] https://groups.google.com/forum/#!topic/beancount/MU6KozsmqGQ
 
