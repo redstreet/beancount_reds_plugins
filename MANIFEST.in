@@ -1,0 +1,3 @@
+global-include *.md
+global-include *.beancount
+include LICENSE
