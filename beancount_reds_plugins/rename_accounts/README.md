@@ -28,7 +28,7 @@ Configuring
 Example to include in your beancount file:
 
 ```python
-plugin "plugins.beancount_plugins_redstreet.rename_accounts.rename_accounts" "{
+plugin "beancount_reds_plugins.rename_accounts.rename_accounts" "{
  'Expenses:Taxes' : 'Income:Taxes',
  'Expenses:Employer-Paid-Benefits' : 'Income:Employer-Paid-Benefits',
  }"

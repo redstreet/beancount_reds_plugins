@@ -157,12 +157,11 @@ matched transactions are moved.
 First, an example:
 
 ```
-# Assuming you have checked out these plugin files into ~/accounts/plugins/redstreet
-# (~/accounts/plugins/redstreet/zerosum.py and (~/accounts/plugins/redstreet/__init__.py exist):
+# After installation via pip:
 
 export PYTHONPATH=$PYTHONPATH:~/accounts
 
-    plugin "plugins.redstreet.zerosum" "{
+    plugin "beancount_reds_plugins.zerosum.zerosum" "{
      'zerosum_accounts' : {
        'Assets:Zero-Sum-Accounts:Bank-Account-Transfers' : ('Assets:ZSA-Matched:Bank-Account-Transfers', 30),
        'Assets:Zero-Sum-Accounts:Credit-Card-Payments'   : ('Assets:ZSA-Matched:Credit-Card-Payments'  ,  6),
@@ -180,7 +179,7 @@ The optional 'account_name_replace' can be used to specify a substring replaceme
 the source accounts, making the config below equivalent to the config above:
 
 ```
-    plugin "plugins.redstreet.zerosum" "{
+    plugin "beancount_reds_plugins.zerosum.zerosum" "{
      'zerosum_accounts' : {
        'Assets:Zero-Sum-Accounts:Bank-Account-Transfers' : ('', 30),
        'Assets:Zero-Sum-Accounts:Credit-Card-Payments'   : ('',  6),
