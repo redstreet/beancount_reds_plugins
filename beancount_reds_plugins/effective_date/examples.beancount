@@ -1,6 +1,6 @@
 option "operating_currency" "USD"
 
-plugin "plugins.beancount_plugins_redstreet.effective_date.effective_date" "{
+plugin "beancount_reds_plugins.effective_date.effective_date" "{
  'Expenses': {'earlier': 'Liabilities:Hold:Expenses', 'later': 'Assets:Hold:Expenses'},
  'Income':   {'earlier': 'Assets:Hold:Income', 'later': 'Liabilities:Hold:Income'},
  }"
