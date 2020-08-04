@@ -1,5 +1,5 @@
 option "operating_currency" "USD"
-plugin "plugins.beancount_plugins_redstreet.zerosum.zerosum" "{
+plugin "beancount_reds_plugins.zerosum.zerosum" "{
  'zerosum_accounts' : { 
     'Assets:Reimbursements:Workplace' : ('Assets:Reimbursements-Received:Workplace',   40),
     'Assets:Rebates'                  : ('Assets:ZeroSum-Matched:Rebates',            180),
