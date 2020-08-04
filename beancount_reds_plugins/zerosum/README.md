@@ -158,9 +158,6 @@ First, an example:
 
 ```
 # After installation via pip:
-
-export PYTHONPATH=$PYTHONPATH:~/accounts
-
     plugin "beancount_reds_plugins.zerosum.zerosum" "{
      'zerosum_accounts' : {
        'Assets:Zero-Sum-Accounts:Bank-Account-Transfers' : ('Assets:ZSA-Matched:Bank-Account-Transfers', 30),
