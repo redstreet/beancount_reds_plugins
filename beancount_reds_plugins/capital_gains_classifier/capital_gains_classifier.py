@@ -15,7 +15,7 @@ from beancount.parser import options
 from beancount.parser import printer
 from ast import literal_eval
 
-DEBUG = 0
+DEBUG = 1
 
 __plugins__ = ('capital_gains_classifier',)
 
@@ -65,13 +65,14 @@ def capital_gains_classifier(entries, options_map, config):
             postings = list(entry.postings)
             for posting in postings:
                 account = posting.account
+                print(account, rewrites)
                 if any(re.match(r, account) for r in rewrites):
                     # matched = True
                     for r in rewrites:
                         if posting.units.number < 0:
-                            account = account.replace(rewrites[r][0], rewrites[r][1]) #losses
+                            account = account.replace(rewrites[r]['match'], rewrites[r]['gains']) #losses
                         else:
-                            account = account.replace(rewrites[r][0], rewrites[r][2]) #gains
+                            account = account.replace(rewrites[r]['match'], rewrites[r]['losses']) #gains
                         rewrite_count += 1
                         if account not in new_accounts:
                             new_accounts.append(account)
