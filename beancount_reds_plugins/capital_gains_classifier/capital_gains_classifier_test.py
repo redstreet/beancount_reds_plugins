@@ -12,13 +12,16 @@ from . import capital_gains_classifier
 
 class TestLossGains(cmptest.TestCase):
     @loader.load_doc()
-    def test_loss_gains(self, entries, errors, _):
+    def test_all(self, entries, errors, _):
         """
         plugin "capital_gains_classifier" "{
          'Income.*:Capital-Gains.*': {
-            'match':  ':Capital-Gains',
-            'gains':  ':Capital-Gains:Gains',
-            'losses': ':Capital-Gains:Losses'},
+            'match':        ':Capital-Gains',
+            'short_gains':  ':Capital-Gains:Short:Gains',
+            'short_losses': ':Capital-Gains:Short:Losses',
+            'long_gains':   ':Capital-Gains:Long:Gains',
+            'long_losses':  ':Capital-Gains:Long:Losses',
+            },
          }"
 
         2015-01-01 open Assets:Brokerage "STRICT"
@@ -48,13 +51,13 @@ class TestLossGains(cmptest.TestCase):
         2019-12-01 * "Sell"
           Assets:Brokerage -50 HOOLI {1 USD} @ 2 USD
           Assets:Bank      100 USD
-          Income:Capital-Gains:Gains -50 USD
+          Income:Capital-Gains:Short:Gains -50 USD
 
 
         2020-01-25 * "Sell"
           Assets:Brokerage -50 HOOLI {1 USD} @ 0.5 USD
           Assets:Bank       25 USD
-          Income:Capital-Gains:Losses 25 USD
+          Income:Capital-Gains:Long:Losses 25 USD
 
         """, list(data.filter_txns(entries)))
 
