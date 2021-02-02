@@ -91,7 +91,7 @@ class TestUnrealized(unittest.TestCase):
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
 
     @loader.load_doc()
-    def test_above_epsilon(self, entries, _, options_map):
+    def test_above_tolerance(self, entries, _, options_map):
         """
         2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
@@ -114,7 +114,7 @@ class TestUnrealized(unittest.TestCase):
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
 
     @loader.load_doc()
-    def test_below_epsilon(self, entries, _, options_map):
+    def test_below_tolerance(self, entries, _, options_map):
         """
         2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
@@ -177,12 +177,12 @@ class TestUnrealized(unittest.TestCase):
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
 
     @loader.load_doc()
-    def test_two_matched_below_epsilon(self, entries, _, options_map):
+    def test_two_matched_below_tolerance(self, entries, _, options_map):
         """
         2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
-        2021-01-01 * "(two unmatched postings summing under epsilon)"
+        2021-01-01 * "(two unmatched postings summing under tolerance)"
           Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.001 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.002 USD
           Liabilities:Credit-Cards:Visa
@@ -197,12 +197,12 @@ class TestUnrealized(unittest.TestCase):
         self.assertEqual(2, matched_postings)
 
     @loader.load_doc()
-    def test_two_unmatched_above_epsilon(self, entries, _, options_map):
+    def test_two_unmatched_above_tolerance(self, entries, _, options_map):
         """
         2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
-        2021-01-01 * "(two unmatched postings summing under epsilon)"
+        2021-01-01 * "(two unmatched postings summing under tolerance)"
           Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.00494 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.00496 USD
           Liabilities:Credit-Cards:Visa
