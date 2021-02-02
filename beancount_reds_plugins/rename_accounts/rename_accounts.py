@@ -1,22 +1,15 @@
 """See accompanying README.md"""
 
-import collections
 import time
 
-from beancount.core.amount import ZERO
 from beancount.core import data
-from beancount.core import account
 from beancount.core import getters
-from beancount.core import position
-from beancount.core import flags
-from beancount.ops import holdings
-from beancount.parser import options
-from beancount.parser import printer
 from ast import literal_eval
 
 DEBUG = 0
 
 __plugins__ = ('rename_accounts',)
+
 
 def pretty_print_transaction(t):
     print(t.date)
@@ -53,7 +46,7 @@ def rename_accounts(entries, options_map, config):
     new_accounts = []
     errors = []
 
-    renames = literal_eval(config) #TODO: error check
+    renames = literal_eval(config)  # TODO: error check
 
     for entry in entries:
         if isinstance(entry, data.Transaction):
@@ -72,12 +65,13 @@ def rename_accounts(entries, options_map, config):
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Rename accounts [{:.1f}s]: {} postings renamed.".format(elapsed_time, rename_count))
-    return(new_open_entries + entries, errors)
-
+    return new_open_entries + entries, errors
 
 
 def create_open_directives(new_accounts, entries):
-    meta = data.new_metadata('<zerosum>', 0)
+    if not entries:
+        return []
+    meta = data.new_metadata('<rename_accounts>', 0)
     # Ensure that the accounts we're going to use to book the postings exist, by
     # creating open entries for those that we generated that weren't already
     # existing accounts.
@@ -89,4 +83,4 @@ def create_open_directives(new_accounts, entries):
             meta = data.new_metadata(meta['filename'], 0)
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
-    return(new_open_entries)
+    return new_open_entries
