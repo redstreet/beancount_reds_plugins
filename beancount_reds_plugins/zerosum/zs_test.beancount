@@ -23,6 +23,10 @@ plugin "beancount_reds_plugins.zerosum.zerosum" "{
   Liabilities:Credit-Cards:Vsia  1263.01 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
+2020-01-01 * "Match both postings in one txn"
+  Assets:Zero-Sum-Accounts:Returns-and-Temporary  -1.00 USD
+  Assets:Zero-Sum-Accounts:Returns-and-Temporary  1.00 USD
+
 2021-01-31 * "Unmatched"
   Liabilities:Credit-Cards:Vsia  -0.00495 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
