@@ -27,10 +27,10 @@ plugin "beancount_reds_plugins.zerosum.zerosum" "{
   Assets:Zero-Sum-Accounts:Returns-and-Temporary -1.00 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary  1.00 USD
 
-2020-06-01 * "Match two lookalike postings in one txn"
+2020-06-01 * "Match two lookalike postings in one txn" ; should not error
   Assets:Zero-Sum-Accounts:Returns-and-Temporary  0.00 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary  0.00 USD
 
-2021-01-01 * "Unmatched"
+2021-01-01 * "Unmatched" ; should not error
   Liabilities:Credit-Cards:Vsia -0.00495 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
