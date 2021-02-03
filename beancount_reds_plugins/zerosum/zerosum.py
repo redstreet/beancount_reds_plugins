@@ -173,7 +173,7 @@ from beancount.core import flags
 from beancount.core import getters
 
 DEBUG = 0
-TOLERANCE = 0.0099
+DEFAULT_TOLERANCE = 0.0099
 
 __plugins__ = ('zerosum', 'flag_unmatched',)
 
@@ -240,7 +240,7 @@ def zerosum(entries, options_map, config):
     config_obj = literal_eval(config) #TODO: error check
     zs_accounts_list = config_obj.pop('zerosum_accounts', {})
     (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ('', ''))
-    tolerance = config_obj.pop('tolerance', TOLERANCE)
+    tolerance = config_obj.pop('tolerance', DEFAULT_TOLERANCE)
 
     new_accounts = set()
     zerosum_postings_count = 0
