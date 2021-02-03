@@ -135,3 +135,45 @@ class TestUnrealized(unittest.TestCase):
 
         for (m, p) in ref:
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
+
+    @loader.load_doc()
+    def test_lookalike(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+
+        2020-06-01 * "Match two lookalike postings in one txn" ; should not error
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary  0.00 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary  0.00 USD
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+        self.assertEqual(1, len(matched))
+
+        ref = [(0, 0), (0, 1)]
+
+        for (m, p) in ref:
+            self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
+
+    @loader.load_doc()
+    def test_both_postings_in_one_txn(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+
+        2020-01-01 * "Match both postings in one txn"
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -1.00 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary  1.00 USD
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+        self.assertEqual(1, len(matched))
+
+        ref = [(0, 0), (0, 1)]
+
+        for (m, p) in ref:
+            self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
+
+
