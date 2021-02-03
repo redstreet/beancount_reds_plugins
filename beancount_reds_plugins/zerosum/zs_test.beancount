@@ -2,7 +2,7 @@ option "operating_currency" "USD"
 
 plugin "beancount.plugins.auto_accounts"
 
-plugin "plugins.beancount_plugins_redstreet.zerosum.zerosum" "{
+plugin "beancount_reds_plugins.zerosum.zerosum" "{
  'zerosum_accounts' : { 
  'Assets:Zero-Sum-Accounts:Returns-and-Temporary'              : ('', 90),
   },

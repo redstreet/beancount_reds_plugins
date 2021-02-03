@@ -307,6 +307,8 @@ def flag_unmatched(entries, unused_options_map, config):
 
 
 def create_open_directives(new_accounts, entries):
+    if not entries:
+        return []
     meta = data.new_metadata('<zerosum>', 0)
     # Ensure that the accounts we're going to use to book the postings exist, by
     # creating open entries for those that we generated that weren't already
