@@ -24,8 +24,8 @@ plugin "beancount_reds_plugins.zerosum.zerosum" "{
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
 2020-01-01 * "Match both postings in one txn"
-  Assets:Zero-Sum-Accounts:Returns-and-Temporary  -1.00 USD
-  Assets:Zero-Sum-Accounts:Returns-and-Temporary  1.00 USD
+  Assets:Zero-Sum-Accounts:Returns-and-Temporary  -1.00 USD ; this should match...
+  Assets:Zero-Sum-Accounts:Returns-and-Temporary  1.00 USD ; ...with this
 
 2021-01-01 * "Unmatched"
   Liabilities:Credit-Cards:Vsia  -0.00495 USD
