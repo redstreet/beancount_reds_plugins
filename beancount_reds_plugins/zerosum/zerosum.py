@@ -221,6 +221,9 @@ def zerosum(entries, options_map, config):
             if t.date > max_date:
                 return None
             for p in t.postings:
+                if p is posting:
+                    # Don't match with the same exact posting.
+                    continue
                 if (abs(p.units.number + posting.units.number) < EPSILON_DELTA
                     and p.account == zs_account):
                     return (p, t)
