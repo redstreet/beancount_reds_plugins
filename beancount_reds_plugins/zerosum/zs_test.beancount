@@ -22,3 +22,7 @@ plugin "beancount_reds_plugins.zerosum.zerosum" "{
 2015-06-23 * "Expensive furniture Refund"
   Liabilities:Credit-Cards:Vsia  1263.01 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
+
+2021-01-31 * "Unmatched"
+  Liabilities:Credit-Cards:Vsia  -0.00495 USD
+  Assets:Zero-Sum-Accounts:Returns-and-Temporary
