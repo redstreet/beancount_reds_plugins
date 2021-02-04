@@ -3,7 +3,7 @@ option "operating_currency" "USD"
 plugin "beancount.plugins.auto_accounts"
 
 plugin "beancount_reds_plugins.zerosum.zerosum" "{
- 'zerosum_accounts' : { 
+ 'zerosum_accounts' : {
  'Assets:Zero-Sum-Accounts:Returns-and-Temporary'              : ('', 90),
   },
   'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched')

@@ -8,7 +8,7 @@ from beancount.parser import options
 from beancount import loader
 
 config = """{
- 'zerosum_accounts' : { 
+ 'zerosum_accounts' : {
  'Assets:Zero-Sum-Accounts:Returns-and-Temporary'              : ('', 90),
   },
   'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched')
@@ -71,11 +71,11 @@ class TestUnrealized(unittest.TestCase):
           Liabilities:Credit-Cards:Visa  -2526.02 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
-        
+
         2015-06-23 * "Expensive furniture Refund"
           Liabilities:Credit-Cards:Visa  1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
-        
+
         2015-06-23 * "Expensive furniture Refund"
           Liabilities:Credit-Cards:Visa  1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
@@ -98,7 +98,7 @@ class TestUnrealized(unittest.TestCase):
         2015-06-15 * "Trinket"
           Liabilities:Credit-Cards:Visa  -0.014 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
-        
+
         2015-06-23 * "Trinket refund"
           Liabilities:Credit-Cards:Visa  0.014 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
@@ -121,7 +121,7 @@ class TestUnrealized(unittest.TestCase):
         2015-06-15 * "Trinket"
           Liabilities:Credit-Cards:Visa  -0.004 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
-        
+
         2015-06-23 * "Trinket refund"
           Liabilities:Credit-Cards:Visa  0.004 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
