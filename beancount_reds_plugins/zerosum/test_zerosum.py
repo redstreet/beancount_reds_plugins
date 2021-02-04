@@ -176,4 +176,38 @@ class TestUnrealized(unittest.TestCase):
         for (m, p) in ref:
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
 
+    @loader.load_doc()
+    def test_two_matched_below_epsilon(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Visa
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
+        2021-01-01 * "(two unmatched postings summing under epsilon)"
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.001 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.002 USD
+          Liabilities:Credit-Cards:Visa
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched_txns = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+        self.assertEqual(1, len(matched_txns))
+        matched_postings = sum(map(
+            lambda posting: bool(re.search(':ZSA-Matched', posting.account)),
+            matched_txns[0].postings))
+        self.assertEqual(2, matched_postings)
+
+    @loader.load_doc()
+    def test_two_unmatched_above_epsilon(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Visa
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+
+        2021-01-01 * "(two unmatched postings summing under epsilon)"
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.00494 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.00496 USD
+          Liabilities:Credit-Cards:Visa
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched_txns = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+        self.assertEqual(0, len(matched_txns))
