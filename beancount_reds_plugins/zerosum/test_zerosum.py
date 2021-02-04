@@ -65,19 +65,19 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_single_rename(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
         2015-06-15 * "Expensive furniture"
-          Liabilities:Credit-Cards:Vsia  -2526.02 USD
+          Liabilities:Credit-Cards:Visa  -2526.02 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
         
         2015-06-23 * "Expensive furniture Refund"
-          Liabilities:Credit-Cards:Vsia  1263.01 USD
+          Liabilities:Credit-Cards:Visa  1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         
         2015-06-23 * "Expensive furniture Refund"
-          Liabilities:Credit-Cards:Vsia  1263.01 USD
+          Liabilities:Credit-Cards:Visa  1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         """
         new_entries, _ = zerosum.zerosum(entries, options_map, config)
@@ -93,14 +93,14 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_above_epsilon(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
         2015-06-15 * "Trinket"
-          Liabilities:Credit-Cards:Vsia  -0.014 USD
+          Liabilities:Credit-Cards:Visa  -0.014 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         
         2015-06-23 * "Trinket refund"
-          Liabilities:Credit-Cards:Vsia  0.014 USD
+          Liabilities:Credit-Cards:Visa  0.014 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         """
         new_entries, _ = zerosum.zerosum(entries, options_map, config)
@@ -116,14 +116,14 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_below_epsilon(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
         2015-06-15 * "Trinket"
-          Liabilities:Credit-Cards:Vsia  -0.004 USD
+          Liabilities:Credit-Cards:Visa  -0.004 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         
         2015-06-23 * "Trinket refund"
-          Liabilities:Credit-Cards:Vsia  0.004 USD
+          Liabilities:Credit-Cards:Visa  0.004 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         """
         new_entries, _ = zerosum.zerosum(entries, options_map, config)
@@ -139,7 +139,7 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_lookalike(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
         2020-06-01 * "Match two lookalike postings in one txn" ; should not error
@@ -159,7 +159,7 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_both_postings_in_one_txn(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Visa
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
         2020-01-01 * "Match both postings in one txn"

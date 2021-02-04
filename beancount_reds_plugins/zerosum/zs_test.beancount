@@ -11,16 +11,16 @@ plugin "beancount_reds_plugins.zerosum.zerosum" "{
 
 
 2015-06-15 * "Expensive furniture"
-  Liabilities:Credit-Cards:Vsia -2526.02 USD
+  Liabilities:Credit-Cards:Visa -2526.02 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
 
 2015-06-23 * "Expensive furniture Refund"
-  Liabilities:Credit-Cards:Vsia  1263.01 USD
+  Liabilities:Credit-Cards:Visa  1263.01 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
 2015-06-23 * "Expensive furniture Refund"
-  Liabilities:Credit-Cards:Vsia  1263.01 USD
+  Liabilities:Credit-Cards:Visa  1263.01 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
 2020-01-01 * "Match both postings in one txn"
@@ -32,5 +32,5 @@ plugin "beancount_reds_plugins.zerosum.zerosum" "{
   Assets:Zero-Sum-Accounts:Returns-and-Temporary  0.00 USD
 
 2021-01-01 * "Unmatched" ; should not error
-  Liabilities:Credit-Cards:Vsia -0.00495 USD
+  Liabilities:Credit-Cards:Visa -0.00495 USD
   Assets:Zero-Sum-Accounts:Returns-and-Temporary
