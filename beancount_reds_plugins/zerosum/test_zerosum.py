@@ -12,6 +12,7 @@ config = """{
  'Assets:Zero-Sum-Accounts:Returns-and-Temporary'              : ('', 90),
   },
   'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched'),
+  'tolerance' : 0.0098,
  }"""
 
 def get_entries_with_acc_regexp(entries, regexp):
