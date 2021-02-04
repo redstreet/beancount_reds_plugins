@@ -11,7 +11,7 @@ config = """{
  'zerosum_accounts' : {
  'Assets:Zero-Sum-Accounts:Returns-and-Temporary'              : ('', 90),
   },
-  'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched')
+  'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched'),
  }"""
 
 def get_entries_with_acc_regexp(entries, regexp):
