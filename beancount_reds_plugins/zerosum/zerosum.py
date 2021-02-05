@@ -162,11 +162,9 @@ TODO:
 """
 
 import time
-import collections
 from ast import literal_eval
 import datetime
 from collections import defaultdict
-import cProfile, pstats
 
 from beancount.core import data
 from beancount.core import flags
@@ -177,6 +175,7 @@ DEFAULT_TOLERANCE = 0.0099
 
 __plugins__ = ('zerosum', 'flag_unmatched',)
 
+
 # replace the account on a given posting with a new account
 def account_replace(txn, posting, new_account):
     # create a new posting with the new account, then remove old and add new
@@ -184,6 +183,7 @@ def account_replace(txn, posting, new_account):
     new_posting = posting._replace(account=new_account)
     txn.postings.remove(posting)
     txn.postings.append(new_posting)
+
 
 def zerosum(entries, options_map, config):
     """Insert entries for unmatched transactions in zero-sum accounts.
@@ -228,7 +228,7 @@ def zerosum(entries, options_map, config):
                     # Don't match with the same exact posting.
                     continue
                 if (abs(p.units.number + posting.units.number) < tolerance
-                    and p.account == zs_account):
+                   and p.account == zs_account):
                     return (p, t)
         return None
 
@@ -237,7 +237,7 @@ def zerosum(entries, options_map, config):
         # pr.enable()
         start_time = time.time()
 
-    config_obj = literal_eval(config) #TODO: error check
+    config_obj = literal_eval(config)  # TODO: error check
     zs_accounts_list = config_obj.pop('zerosum_accounts', {})
     (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ('', ''))
     tolerance = config_obj.pop('tolerance', DEFAULT_TOLERANCE)
@@ -266,7 +266,7 @@ def zerosum(entries, options_map, config):
         for i in range(len(zerosum_txns)):
             txn = zerosum_txns[i]
             reprocess = True
-            while reprocess: # necessary since this entry's postings changes under us when we find a match
+            while reprocess:  # necessary since this entry's postings changes under us when we find a match
                 for posting in txn.postings:
                     reprocess = False
                     if posting.account == zs_account:
@@ -330,4 +330,3 @@ def create_open_directives(new_accounts, entries):
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
     return(new_open_entries)
-

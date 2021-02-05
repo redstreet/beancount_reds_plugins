@@ -1,14 +1,7 @@
 """Beancount plugin to implement per-posting effective dates. See README.md for more."""
 
-import collections
-from beancount.core.amount import ZERO
 from beancount.core import data
-from beancount.core import account
 from beancount.core import getters
-from beancount.core import flags
-from beancount.ops import holdings
-from beancount.parser import options
-from beancount.parser import printer
 from ast import literal_eval
 import copy
 import datetime
@@ -24,10 +17,12 @@ __plugins__ = ['effective_date']
 
 LINK_FORMAT = 'edate-{date}-{random}'
 
+
 def has_valid_effective_date(posting):
     return posting.meta is not None and \
              'effective_date' in posting.meta and \
              type(posting.meta['effective_date']) == datetime.date
+
 
 def has_posting_with_valid_effective_date(entry):
     for posting in entry.postings:
@@ -35,17 +30,18 @@ def has_posting_with_valid_effective_date(entry):
             return True
     return False
 
+
 def create_new_effective_date_entry(entry, date, hold_posting, original_posting):
     def cleaned(p):
-       clean_meta = copy.deepcopy(p.meta)
-       clean_meta.pop('effective_date', None)
-       return p._replace(meta=clean_meta)
+        clean_meta = copy.deepcopy(p.meta)
+        clean_meta.pop('effective_date', None)
+        return p._replace(meta=clean_meta)
 
     new_meta = {'original_date': entry.date}
-    effective_date_entry = entry._replace(date=date,
-            meta={**entry.meta, **new_meta},
-            postings=[cleaned(hold_posting), cleaned(original_posting)])
+    effective_date_entry = entry._replace(date=date, meta={**entry.meta, **new_meta},
+                                          postings=[cleaned(hold_posting), cleaned(original_posting)])
     return effective_date_entry
+
 
 def build_config(config):
     holding_accts = {}
@@ -58,6 +54,7 @@ def build_config(config):
                 'Income':   {'earlier': 'Assets:Hold:Income', 'later': 'Liabilities:Hold:Income'},
                 }
     return holding_accts
+
 
 def effective_date(entries, options_map, config):
     """Effective dates
@@ -90,7 +87,7 @@ def effective_date(entries, options_map, config):
     #     for e in interesting_entries:
     #         printer.print_entry(e)
     #     print("------")
-    
+
     # add a link to each effective date entry. this gets copied over to the newly created effective date
     # entries, and thus links each set of effective date entries
     interesting_entries_linked = []
@@ -104,7 +101,6 @@ def effective_date(entries, options_map, config):
     new_entries = []
     for entry in interesting_entries_linked:
         modified_entry_postings = []
-        effective_date_entry_postings = []
         for posting in entry.postings:
             if not has_valid_effective_date(posting):
                 modified_entry_postings += [posting]
@@ -126,7 +122,8 @@ def effective_date(entries, options_map, config):
 
                 # Create new entry at effective_date
                 hold_posting = new_posting._replace(units=-posting.units)
-                new_entry = create_new_effective_date_entry(entry, posting.meta['effective_date'], hold_posting, posting)
+                new_entry = create_new_effective_date_entry(entry, posting.meta['effective_date'],
+                                                            hold_posting, posting)
                 new_entries.append(new_entry)
         modified_entry = entry._replace(postings=modified_entry_postings)
         new_entries.append(modified_entry)
@@ -143,6 +140,7 @@ def effective_date(entries, options_map, config):
     new_open_entries = create_open_directives(new_accounts, entries)
     retval = new_open_entries + new_entries + filtered_entries
     return(retval, errors)
+
 
 def effective_date_transaction(entries, options_map, config):
     """Effective dates
@@ -207,7 +205,7 @@ def effective_date_transaction(entries, options_map, config):
     new_accounts = []
     for entry in entries:
         outlist = (interesting_entries
-                   if (isinstance(entry, data.Transaction) and 
+                   if (isinstance(entry, data.Transaction) and
                        'effective_date' in entry.meta and
                        type(entry.meta['effective_date']) == datetime.date)
                    else filtered_entries)
@@ -247,9 +245,9 @@ def effective_date_transaction(entries, options_map, config):
                 if new_posting.account not in new_accounts:
                     new_accounts.append(new_posting.account)
                 modified_entry_postings += [new_posting]
-                effective_date_entry_postings  += [posting]
+                effective_date_entry_postings += [posting]
 
-                effective_date_entry_postings  += [posting._replace(
+                effective_date_entry_postings += [posting._replace(
                     account=posting.account.replace(found_acct, holding_account),
                     units=-posting.units)]
 
@@ -265,7 +263,7 @@ def effective_date_transaction(entries, options_map, config):
             # modified_entry = data.entry_replace(entry, postings=modified_entry_postings,
             #                                     links=(entry.links or set()) | set([link]))
             modified_entry = entry._replace(postings=modified_entry_postings,
-                                                links=(entry.links or set()) | set([link]))
+                                            links=(entry.links or set()) | set([link]))
 
             effective_date_entry_narration = entry.narration + " (originally: {})".format(str(entry.date))
             # effective_date_entry = data.entry_replace(entry, date=entry.meta['effective_date'],
@@ -274,10 +272,10 @@ def effective_date_transaction(entries, options_map, config):
             #         links=(entry.links or set()) | set([link]))
             new_meta = {'original_date': entry.date}
             effective_date_entry = entry._replace(date=entry.meta['effective_date'],
-                    meta={**entry.meta, **new_meta},
-                    postings=effective_date_entry_postings,
-                    narration = effective_date_entry_narration,
-                    links=(entry.links or set()) | set([link]))
+                                                  meta={**entry.meta, **new_meta},
+                                                  postings=effective_date_entry_postings,
+                                                  narration=effective_date_entry_narration,
+                                                  links=(entry.links or set()) | set([link]))
             new_entries += [modified_entry, effective_date_entry]
         else:
             new_entries += [entry]
@@ -293,6 +291,7 @@ def effective_date_transaction(entries, options_map, config):
     new_open_entries = create_open_directives(new_accounts, entries)
     retval = new_open_entries + new_entries + filtered_entries
     return(retval, errors)
+
 
 def create_open_directives(new_accounts, entries):
     if not entries:
@@ -315,9 +314,9 @@ def create_open_directives(new_accounts, entries):
 # -----------------------------------------------------------------------------------------------------------
 # Bug:
 # below will fail because expense account was opened too late in the source:
-#2014-01-01 open Expenses:Taxes:Federal
+# 2014-01-01 open Expenses:Taxes:Federal
 #
-#2014-02-01 * "Estimated taxes for 2013"
+# 2014-02-01 * "Estimated taxes for 2013"
 # Liabilities:Mastercard    -2000 USD
 # Expenses:Taxes:Federal  2000 USD
 #   effective_date: 2013-12-31

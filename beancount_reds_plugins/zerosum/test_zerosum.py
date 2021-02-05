@@ -15,6 +15,7 @@ config = """{
   'tolerance' : 0.0098,
  }"""
 
+
 def get_entries_with_acc_regexp(entries, regexp):
     print(regexp)
     return [entry

@@ -1,23 +1,16 @@
 """See accompanying README.md"""
 
-import collections
 import re
 import time
 
-from beancount.core.amount import ZERO
 from beancount.core import data
-from beancount.core import account
 from beancount.core import getters
-from beancount.core import position
-from beancount.core import flags
-from beancount.ops import holdings
-from beancount.parser import options
-from beancount.parser import printer
 from ast import literal_eval
 
 DEBUG = 0
 
 __plugins__ = ('capital_gains_classifier',)
+
 
 def pretty_print_transaction(t):
     print(t.date)
@@ -48,7 +41,7 @@ def capital_gains_classifier(entries, options_map, config):
 
      "Income.*Capital-Gains:Long:.*",  ":Long:",  ":Long:Losses:",  ":Long:Gains:"
      "Income.*Capital-Gains:Short:.*, ":Short:, ":Short:Losses:, ":Short:Gains:"
-     
+
     Returns:
       A tuple of entries and errors. """
 
@@ -57,7 +50,7 @@ def capital_gains_classifier(entries, options_map, config):
     new_accounts = []
     errors = []
 
-    rewrites = literal_eval(config) #TODO: error check
+    rewrites = literal_eval(config)  # TODO: error check
 
     for entry in entries:
         if isinstance(entry, data.Transaction):
@@ -69,9 +62,9 @@ def capital_gains_classifier(entries, options_map, config):
                     # matched = True
                     for r in rewrites:
                         if posting.units.number < 0:
-                            account = account.replace(rewrites[r][0], rewrites[r][1]) #losses
+                            account = account.replace(rewrites[r][0], rewrites[r][1])  # losses
                         else:
-                            account = account.replace(rewrites[r][0], rewrites[r][2]) #gains
+                            account = account.replace(rewrites[r][0], rewrites[r][2])  # gains
                         rewrite_count += 1
                         if account not in new_accounts:
                             new_accounts.append(account)
@@ -85,7 +78,6 @@ def capital_gains_classifier(entries, options_map, config):
         elapsed_time = time.time() - start_time
         print("Capital gains classifier [{:.1f}s]: {} postings classified.".format(elapsed_time, rewrite_count))
     return(new_open_entries + entries, errors)
-
 
 
 def create_open_directives(new_accounts, entries):

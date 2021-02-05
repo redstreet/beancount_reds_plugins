@@ -6,11 +6,8 @@ import re
 
 # from plugins.beancount_plugins_redstreet import effective_date
 import effective_date
-from beancount.core.number import D
-from beancount.core.number import ZERO
 from beancount.core import data
 from beancount.parser import options
-from beancount.ops import validation
 from beancount import loader
 import datetime
 
@@ -36,7 +33,6 @@ class TestEffectiveDate(unittest.TestCase):
     def test_empty_entries(self):
         entries, _ = effective_date.effective_date([], options.OPTIONS_DEFAULTS.copy(), None)
         self.assertEqual([], entries)
-
 
     @loader.load_doc()
     def test_no_effective_dates(self, entries, _, options_map):
@@ -76,8 +72,8 @@ class TestEffectiveDate(unittest.TestCase):
         self.assertEqual(5, len(new_entries))
 
         results = get_entries_with_narration(new_entries, "Estimated taxes")
-        self.assertEqual(datetime.date(2013,12,31), results[0].date)
-        self.assertEqual(datetime.date(2014,2,1), results[1].date)
+        self.assertEqual(datetime.date(2013, 12, 31), results[0].date)
+        self.assertEqual(datetime.date(2014, 2, 1), results[1].date)
 
         # self.assertEqual('Assets:Account1', results.postings[0].account)
         # self.assertEqual('Income:Account1', results.postings[1].account)
@@ -86,15 +82,11 @@ class TestEffectiveDate(unittest.TestCase):
         # self.assertEqual(2, len(mansion.postings))
         # self.assertEqual(D('-100'), mansion.postings[0].units.number)
 
-
         # entry = get_entries_with_narration(unreal_entries, '3 units')[0]
         # self.assertEqual("Equity:Account1:Gains", entry.postings[0].account)
         # self.assertEqual("Income:Account1:Gains", entry.postings[1].account)
         # self.assertEqual(D("24.00"), entry.postings[0].units.number)
         # self.assertEqual(D("-24.00"), entry.postings[1].units.number)
-
-
-
 
 #    def test_expense_later(self, entries, _, options_map):
 #        """
@@ -115,8 +107,6 @@ class TestEffectiveDate(unittest.TestCase):
 #        # 2014-05-01 "Rent"
 #        #   Liabilities:Hold:Rent -2000 USD
 #        #   Expenses:Rent     2000 USD
-
-
 
     @loader.load_doc()
     def test_expense_later_multiple(self, entries, _, options_map):
@@ -153,5 +143,3 @@ class TestEffectiveDate(unittest.TestCase):
 
         new_entries, _ = effective_date.effective_date(entries, options_map, None)
         self.assertEqual(7, len(new_entries))
-
-
