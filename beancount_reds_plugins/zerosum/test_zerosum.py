@@ -8,10 +8,11 @@ from beancount.parser import options
 from beancount import loader
 
 config = """{
- 'zerosum_accounts' : { 
+ 'zerosum_accounts' : {
  'Assets:Zero-Sum-Accounts:Returns-and-Temporary'              : ('', 90),
   },
-  'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched')
+  'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched'),
+  'tolerance' : 0.0098,
  }"""
 
 def get_entries_with_acc_regexp(entries, regexp):
@@ -65,19 +66,19 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_single_rename(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Green
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
         2015-06-15 * "Expensive furniture"
-          Liabilities:Credit-Cards:Vsia  -2526.02 USD
+          Liabilities:Credit-Cards:Green  -2526.02 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
-        
+
         2015-06-23 * "Expensive furniture Refund"
-          Liabilities:Credit-Cards:Vsia  1263.01 USD
+          Liabilities:Credit-Cards:Green  1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
-        
+
         2015-06-23 * "Expensive furniture Refund"
-          Liabilities:Credit-Cards:Vsia  1263.01 USD
+          Liabilities:Credit-Cards:Green  1263.01 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         """
         new_entries, _ = zerosum.zerosum(entries, options_map, config)
@@ -91,16 +92,16 @@ class TestUnrealized(unittest.TestCase):
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
 
     @loader.load_doc()
-    def test_above_epsilon(self, entries, _, options_map):
+    def test_above_tolerance(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Green
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
         2015-06-15 * "Trinket"
-          Liabilities:Credit-Cards:Vsia  -0.014 USD
+          Liabilities:Credit-Cards:Green  -0.014 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
-        
+
         2015-06-23 * "Trinket refund"
-          Liabilities:Credit-Cards:Vsia  0.014 USD
+          Liabilities:Credit-Cards:Green  0.014 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         """
         new_entries, _ = zerosum.zerosum(entries, options_map, config)
@@ -114,16 +115,16 @@ class TestUnrealized(unittest.TestCase):
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
 
     @loader.load_doc()
-    def test_below_epsilon(self, entries, _, options_map):
+    def test_below_tolerance(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Green
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
         2015-06-15 * "Trinket"
-          Liabilities:Credit-Cards:Vsia  -0.004 USD
+          Liabilities:Credit-Cards:Green  -0.004 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
-        
+
         2015-06-23 * "Trinket refund"
-          Liabilities:Credit-Cards:Vsia  0.004 USD
+          Liabilities:Credit-Cards:Green  0.004 USD
           Assets:Zero-Sum-Accounts:Returns-and-Temporary
         """
         new_entries, _ = zerosum.zerosum(entries, options_map, config)
@@ -139,7 +140,7 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_lookalike(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Green
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
         2020-06-01 * "Match two lookalike postings in one txn" ; should not error
@@ -159,7 +160,7 @@ class TestUnrealized(unittest.TestCase):
     @loader.load_doc()
     def test_both_postings_in_one_txn(self, entries, _, options_map):
         """
-        2015-01-01 open Liabilities:Credit-Cards:Vsia
+        2015-01-01 open Liabilities:Credit-Cards:Green
         2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
         2020-01-01 * "Match both postings in one txn"
@@ -176,4 +177,38 @@ class TestUnrealized(unittest.TestCase):
         for (m, p) in ref:
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
 
+    @loader.load_doc()
+    def test_two_matched_below_tolerance(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Green
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
 
+        2021-01-01 * "(two unmatched postings summing under tolerance)"
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.001 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.002 USD
+          Liabilities:Credit-Cards:Green
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched_txns = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+        self.assertEqual(1, len(matched_txns))
+        matched_postings = sum(map(
+            lambda posting: bool(re.search(':ZSA-Matched', posting.account)),
+            matched_txns[0].postings))
+        self.assertEqual(2, matched_postings)
+
+    @loader.load_doc()
+    def test_two_unmatched_above_tolerance(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Green
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+
+        2021-01-01 * "(two unmatched postings summing under tolerance)"
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.00494 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary -0.00496 USD
+          Liabilities:Credit-Cards:Green
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched_txns = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+        self.assertEqual(0, len(matched_txns))
