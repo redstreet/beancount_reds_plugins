@@ -26,7 +26,7 @@ this, one could book it thus:
 ````
 
 The expense is booked in 2015, while the credit card transaction, in 2014. The
-"Assets:Hold:Insurance" holds the money for the period in between.
+"Assets:Hold:Insurance" account holds the money for the period in between.
 
 This plugin automates the process above. One can simply enter a single transaction with
 an `effective_date` metadata field for the posting (not the transaction) that needs to
