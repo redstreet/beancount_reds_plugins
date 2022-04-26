@@ -60,6 +60,7 @@ to:
 ```
 
 WARNINGS:
+- price must be defined in the lot reduction (sale) transaction
 - doesn't distinguish between reductions and short purchases (doesn't understand the
   latter)
 - there are probably cases outside the current unit tests that this fails for

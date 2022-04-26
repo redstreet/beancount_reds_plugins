@@ -61,7 +61,7 @@ def long_short(entries, options_map, config):
     def sale_type(p, entry_date):
         length_held = entry_date - p.cost.date
         diff = relativedelta.relativedelta(entry_date, p.cost.date)
-        gain = (p.price.number - p.cost.number) * abs(p.units.number)
+        gain = (p.cost.number - p.price.number) * abs(p.units.number) # Income is negative
         # relativedelta is used to account for leap years. IRS' definition is at the bottom of the file
         return diff.years > 1 or (diff.years == 1 and diff.days >=1), gain
 
@@ -82,7 +82,7 @@ def long_short(entries, options_map, config):
             orig_p = orig_gains_postings[0]
             orig_sum = sum(p.units.number for p in orig_gains_postings)
             # TODO: not clear if there are unsafe cases that the code below will do incorrect thing for
-            diff = orig_sum - (-1 * (short_gains + long_gains))
+            diff = orig_sum - (short_gains + long_gains)
             # divide this diff among short/long. these are typically for expense transactions
             if diff:
                 total = short_gains + long_gains
@@ -93,7 +93,7 @@ def long_short(entries, options_map, config):
                 entry.postings.remove(p)
 
             def add_posting(gains, account_rep):
-                new_units = orig_p.units._replace(number = gains * -1)
+                new_units = orig_p.units._replace(number=gains)
                 new_account = orig_p.account.replace(generic_account_pat, account_rep)
                 new_accounts.add(new_account)
                 new_posting = orig_p._replace(account=new_account, units=new_units)
