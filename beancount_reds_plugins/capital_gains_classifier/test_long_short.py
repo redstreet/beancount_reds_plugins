@@ -1,0 +1,78 @@
+__copyright__ = "Copyright (C) 2021  Red S"
+__license__ = "GNU GPLv3"
+
+import unittest
+import re
+
+import long_short
+from beancount.core import data
+from beancount.parser import options
+from beancount import loader
+import datetime
+from decimal import Decimal
+
+
+config = """{
+   'generic_account':   'Income:Capital-Gains',
+   'short_account_rep': ['Capital-Gains', 'Capital-Gains:Short'],
+   'long_account_rep':  ['Capital-Gains', 'Capital-Gains:Long'],
+   }"""
+
+def get_entries_with_narration(entries, regexp):
+    """Return the entries whose narration matches the regexp.
+
+    Args:
+      entries: A list of directives.
+      regexp: A regular expression string, to be matched against the
+        narration field of transactions.
+    Returns:
+      A list of directives.
+    """
+    return [entry
+            for entry in entries
+            if (isinstance(entry, data.Transaction) and
+                re.search(regexp, entry.narration))]
+
+
+class TestLongShort(unittest.TestCase):
+
+    def test_empty_entries(self):
+        entries, _ = long_short.long_short([], options.OPTIONS_DEFAULTS.copy(), config)
+        self.assertEqual([], entries)
+
+    @loader.load_doc()
+    def test_long(self, entries, _, options_map):
+        """
+        2014-01-01 open Assets:Brokerage
+        2014-01-01 open Assets:Bank
+        2014-01-01 open Income:Capital-Gains
+
+        2014-02-01 * "Buy"
+          Assets:Brokerage    100 ORNG {1 USD}
+          Assets:Bank        -100 USD
+
+        2016-03-01 * "Sell"
+          Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+          Assets:Bank         150 USD
+          Income:Capital-Gains
+
+        """
+
+        # # # Above should turn into:
+        # 2014-03-01 * "Sell"
+        #   Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+        #   Assets:Bank         150 USD
+        #   Income:Capital-Gains:Long -50 USD
+
+        new_entries, _ = long_short.long_short(entries, options_map, config)
+        self.assertEqual(6, len(new_entries))
+
+        results = get_entries_with_narration(new_entries, "Sell")
+        self.assertEqual('Income:Capital-Gains:Long', results[0].postings[2].account)
+        self.assertEqual(Decimal("-50.00"), results[0].postings[2].units.number)
+
+    # def test_short(self, entries, _, options_map):
+    # def test_long_leap_year(self, entries, _, options_map):
+    # def test_auto_lot_matching(self, entries, _, options_map):
+    # def test_multiple(self, entries, _, options_map):
+    # def test_multiple_with_losses(self, entries, _, options_map):

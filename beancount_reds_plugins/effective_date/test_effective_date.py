@@ -1,5 +1,5 @@
-__copyright__ = "Copyright (C) 2014-2017  Martin Blais"
-__license__ = "GNU GPLv2"
+__copyright__ = "Copyright (C) 2020  Red S"
+__license__ = "GNU GPLv3"
 
 import unittest
 import re
