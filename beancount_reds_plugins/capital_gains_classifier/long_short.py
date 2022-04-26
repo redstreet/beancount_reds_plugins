@@ -120,7 +120,7 @@ def long_short(entries, options_map, config):
 def create_open_directives(new_accounts, entries):
     if not entries:
         return []
-    meta = data.new_metadata('<zerosum>', 0)
+    meta = data.new_metadata('<long_short>', 0)
     # Ensure that the accounts we're going to use to book the postings exist, by
     # creating open entries for those that we generated that weren't already
     # existing accounts.
