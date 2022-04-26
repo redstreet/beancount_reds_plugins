@@ -11,11 +11,10 @@ from beancount import loader
 import datetime
 from decimal import Decimal
 
-
 config = """{
-   'generic_account':   'Income:Capital-Gains',
-   'short_account_rep': ['Capital-Gains', 'Capital-Gains:Short'],
-   'long_account_rep':  ['Capital-Gains', 'Capital-Gains:Long'],
+   'generic_account_pat':   ':Capital-Gains',
+   'short_account_rep': ':Capital-Gains:Short',
+   'long_account_rep':  ':Capital-Gains:Long',
    }"""
 
 def get_entries_with_narration(entries, regexp):
