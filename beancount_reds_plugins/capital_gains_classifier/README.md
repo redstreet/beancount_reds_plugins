@@ -60,9 +60,6 @@ to:
 ```
 
 WARNINGS:
-- doesn't work for transactions where there are any additional postings apart from
-  reductions, one Assets, and Income. For example, if there is a brokerage fee that
-  should get deducted from the capital gains, this plugin will fail with an assertion!
 - doesn't distinguish between reductions and short purchases (doesn't understand the
   latter)
 - there are probably cases outside the current unit tests that this fails for

@@ -11,6 +11,11 @@ from beancount import loader
 import datetime
 from decimal import Decimal
 
+# TODO:
+# def test_auto_lot_matching(self, entries, _, options_map):
+# def test_mixed_with_losses(self, entries, _, options_map):
+# def test_long_leap_year(self, entries, _, options_map):
+
 config = """{
    'generic_account_pat':   ':Capital-Gains',
    'short_account_rep': ':Capital-Gains:Short',
@@ -123,9 +128,6 @@ class TestLongShort(unittest.TestCase):
         self.assertEqual('Income:Capital-Gains:Long', results[0].postings[4].account)
         self.assertEqual(Decimal("-150.00"), results[0].postings[4].units.number)
 
-    # def test_auto_lot_matching(self, entries, _, options_map):
-    # def test_mixed_with_losses(self, entries, _, options_map):
-    # def test_long_leap_year(self, entries, _, options_map):
 
     @loader.load_doc()
     def test_leap_year(self, entries, _, options_map):
@@ -157,3 +159,28 @@ class TestLongShort(unittest.TestCase):
         results = get_entries_with_narration(new_entries, "Sell")
         self.assertEqual('Income:Capital-Gains:Short', results[0].postings[2].account)
         self.assertEqual(Decimal("-50.00"), results[0].postings[2].units.number)
+
+    @loader.load_doc()
+    def test_fee(self, entries, _, options_map):
+        """
+        2014-01-01 open Assets:Brokerage
+        2014-01-01 open Assets:Bank
+        2014-01-01 open Expenses:Fees
+        2014-01-01 open Income:Capital-Gains
+
+        2014-02-01 * "Buy"
+          Assets:Brokerage    100 ORNG {1 USD}
+          Assets:Bank        -100 USD
+
+        2014-03-01 * "Sell"
+          Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+          Assets:Bank         140 USD
+          Income:Capital-Gains
+          Expenses:Fees        10 USD
+
+        """
+        new_entries, _ = long_short.long_short(entries, options_map, config)
+        self.assertEqual(7, len(new_entries))
+        results = get_entries_with_narration(new_entries, "Sell")
+        self.assertEqual('Income:Capital-Gains:Short', results[0].postings[3].account)
+        self.assertEqual(Decimal("-50.00"), results[0].postings[3].units.number)

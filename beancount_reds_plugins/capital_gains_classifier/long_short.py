@@ -34,7 +34,7 @@ def long_short(entries, options_map, config):
 
     start_time = time.time()
     rewrite_count_short = rewrite_count_long = 0
-    new_short_accounts = new_long_accounts = set()
+    new_accounts = set()
     errors = []
 
     config_obj = literal_eval(config)
@@ -81,32 +81,35 @@ def long_short(entries, options_map, config):
             orig_gains_postings = [p for p in entry.postings if generic_account_pat in p.account]
             orig_p = orig_gains_postings[0]
             orig_sum = sum(p.units.number for p in orig_gains_postings)
-            assert orig_sum == -1 * (short_gains + long_gains)
+            # TODO: not clear if there are unsafe cases that the code below will do incorrect thing for
+            diff = orig_sum - (-1 * (short_gains + long_gains))
+            # divide this diff among short/long. these are typically for expense transactions
+            if diff:
+                total = short_gains + long_gains
+                short_gains += (short_gains/total) * diff
+                long_gains += (long_gains/total) * diff
+
             for p in orig_gains_postings:
                 entry.postings.remove(p)
 
+            def add_posting(gains, account_rep):
+                new_units = orig_p.units._replace(number = gains * -1)
+                new_account = orig_p.account.replace(generic_account_pat, account_rep)
+                new_accounts.add(new_account)
+                new_posting = orig_p._replace(account=new_account, units=new_units)
+                entry.postings.append(new_posting)
+
             # create and add upto two new postings
             if short_gains:
-                new_units = orig_p.units._replace(number = short_gains * -1)
-                new_account = orig_p.account.replace(generic_account_pat, short_account_rep)
-                new_short_accounts.add(new_account)
-                new_posting = orig_p._replace(account=new_account, units=new_units)
+                add_posting(short_gains, short_account_rep)
                 rewrite_count_short += 1
-                entry.postings.append(new_posting)
 
             if long_gains:
-                new_units = orig_p.units._replace(number = long_gains * -1)
-                new_account = orig_p.account.replace(generic_account_pat, long_account_rep)
-                new_long_accounts.add(new_account)
-                new_posting = orig_p._replace(account=new_account, units=new_units)
+                add_posting(long_gains, long_account_rep)
                 rewrite_count_long += 1
-                entry.postings.append(new_posting)
-
-            # TODO: catch cases where this doesn't work
-            # - selling in a different currency?
 
     # create open entries
-    new_open_entries = create_open_directives(new_short_accounts.union(new_long_accounts), entries)
+    new_open_entries = create_open_directives(new_accounts, entries)
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Capital gains classifier [{:.1f}s]: {} short, {} long postings added.".format(elapsed_time,
