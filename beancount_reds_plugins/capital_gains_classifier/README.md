@@ -60,8 +60,6 @@ to:
 ```
 
 WARNINGS:
-- still under development
-- doesn't work for leap years yet
 - doesn't distinguish between reductions and short purchases (doesn't understand the
   latter)
 - there are probably cases outside the current unit tests that this fails for

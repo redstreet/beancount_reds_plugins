@@ -1,4 +1,4 @@
-"""Classifies Capital Gains accounts into Short and Long
+"""Classifies Capital Gains accounts into Short and Long based on length held according to IRS, US.
 
 Invoke it in your beancount source this way:
 plugin "long_short" "{
@@ -14,6 +14,7 @@ import time
 from beancount.core import data
 from beancount.core import getters
 from ast import literal_eval
+from dateutil import relativedelta
 
 DEBUG = 1
 
@@ -59,10 +60,10 @@ def long_short(entries, options_map, config):
 
     def sale_type(p, entry_date):
         length_held = entry_date - p.cost.date
+        diff = relativedelta.relativedelta(entry_date, p.cost.date)
         gain = (p.price.number - p.cost.number) * abs(p.units.number)
-        # TODO: account for leap years
-        # check https://thispointer.com/python-get-difference-between-two-dates-in-years/
-        return length_held.days <= 365, gain
+        # relativedelta is used to account for leap years. IRS' definition is at the bottom of the file
+        return diff.years > 1 or (diff.years == 1 and diff.days >=1), gain
 
 
     for entry in entries:
@@ -73,7 +74,7 @@ def long_short(entries, options_map, config):
 
         if isinstance(entry, data.Transaction) and is_interesting_entry(entry):
             sale_types = [sale_type(p, entry.date) for p in reductions(entry)]
-            short_gains = sum(s[1] for s in sale_types if s[0] is True)
+            short_gains = sum(s[1] for s in sale_types if s[0] is False)
             long_gains = sum(s[1] for s in sale_types) - short_gains
 
             # remove generic gains postings
@@ -129,3 +130,20 @@ def create_open_directives(new_accounts, entries):
             open_entry = data.Open(meta, earliest_date, account_, None, None)
             new_open_entries.append(open_entry)
     return(new_open_entries)
+
+# IRS references:
+#
+# https://www.irs.gov/publications/p550#en_US_publink100010540
+#
+# Long-term or short-term. If you hold investment property more than 1 year, any capital gain or loss is a
+# long-term capital gain or loss. If you hold the property 1 year or less, any capital gain or loss is a
+# short-term capital gain or loss.
+#
+# To determine how long you held the investment property, begin counting on the date after the day you
+# acquired the property. The day you disposed of the property is part of your holding period.
+#
+# Example.
+#
+# If you bought investment property on February 5, 2008, and sold it on February 5, 2009, your holding period
+# is not more than 1 year and you have a short-term capital gain or loss. If you sold it on February 6, 2009,
+# your holding period is more than 1 year and you have a long-term capital gain or loss.
