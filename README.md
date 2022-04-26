@@ -14,7 +14,10 @@ directories for plugin descriptions.
   for gains and losses
 
 ## Installation
-`pip install beancount-reds-plugins`
+`pip3 install beancount-reds-plugins`
+
+Or to install the bleeding edge version from git:
+`pip3 install git+https://github.com/redstreet/beancount_reds_plugins`
 
 ## Usage
 Invoke and configure a plugin by including it in your beancount source. For example,
