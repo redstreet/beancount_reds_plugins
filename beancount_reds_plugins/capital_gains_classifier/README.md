@@ -59,6 +59,9 @@ to:
   Income:Capital-Gains:Long -150 USD
 ```
 
+As a reference point for performance, the plugin takes 0.02sec to run to modify around
+200 transactions across 20k total transactions on a modern laptop.
+
 WARNINGS:
 - price must be defined in the lot reduction (sale) transaction
 - doesn't distinguish between reductions and short purchases (doesn't understand the
