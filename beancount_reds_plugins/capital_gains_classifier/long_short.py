@@ -87,17 +87,17 @@ def long_short(entries, options_map, config):
             # create and add upto two new postings
             if short_gains:
                 new_units = orig_p.units._replace(number = short_gains * -1)
-                short_account = orig_p.account.replace(generic_account_pat, short_account_rep)
-                new_short_accounts.add(short_account)
-                new_posting = orig_p._replace(account=short_account, units=new_units)
+                new_account = orig_p.account.replace(generic_account_pat, short_account_rep)
+                new_short_accounts.add(new_account)
+                new_posting = orig_p._replace(account=new_account, units=new_units)
                 rewrite_count_short += 1
                 entry.postings.append(new_posting)
 
             if long_gains:
                 new_units = orig_p.units._replace(number = long_gains * -1)
-                long_account = orig_p.account.replace(generic_account_pat, long_account_rep)
-                new_long_accounts.add(long_account)
-                new_posting = orig_p._replace(account=long_account, units=new_units)
+                new_account = orig_p.account.replace(generic_account_pat, long_account_rep)
+                new_long_accounts.add(new_account)
+                new_posting = orig_p._replace(account=new_account, units=new_units)
                 rewrite_count_long += 1
                 entry.postings.append(new_posting)
 

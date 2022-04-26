@@ -9,7 +9,8 @@ configure them:
 Classifies sales into short term or long term capital gains based on how long they have
 been held.
 
-WARNING: still under development; doesn't work for leap years yet
+WARNING: still under development; doesn't work for leap years yet. There are probably
+lots of other cases outside the current unit tests that this fails for.
 
 
 ## 2. capital_gains_classifier:
