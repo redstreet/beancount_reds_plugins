@@ -4,8 +4,7 @@ __license__ = "GNU GPLv3"
 import unittest
 import re
 
-# from plugins.beancount_plugins_redstreet import effective_date
-import effective_date
+from beancount_reds_plugins.effective_date.effective_date import effective_date
 from beancount.core import data
 from beancount.parser import options
 from beancount import loader
@@ -31,7 +30,7 @@ def get_entries_with_narration(entries, regexp):
 class TestEffectiveDate(unittest.TestCase):
 
     def test_empty_entries(self):
-        entries, _ = effective_date.effective_date([], options.OPTIONS_DEFAULTS.copy(), None)
+        entries, _ = effective_date([], options.OPTIONS_DEFAULTS.copy(), None)
         self.assertEqual([], entries)
 
     @loader.load_doc()
@@ -44,7 +43,7 @@ class TestEffectiveDate(unittest.TestCase):
           Liabilities:Mastercard    -2000 USD
           Expenses:Taxes:Federal  2000 USD
          """
-        new_entries, _ = effective_date.effective_date(entries, options_map, None)
+        new_entries, _ = effective_date(entries, options_map, None)
         self.assertEqual(new_entries, entries)
 
     @loader.load_doc()
@@ -68,7 +67,7 @@ class TestEffectiveDate(unittest.TestCase):
         #   Liabilities:Hold:Taxes:Federal    -2000 USD
         #   Expenses:Taxes:Federal    2000 USD
 
-        new_entries, _ = effective_date.effective_date(entries, options_map, None)
+        new_entries, _ = effective_date(entries, options_map, None)
         self.assertEqual(5, len(new_entries))
 
         results = get_entries_with_narration(new_entries, "Estimated taxes")
@@ -141,5 +140,5 @@ class TestEffectiveDate(unittest.TestCase):
         #   Assets:Hold:Car:Insurance -200 USD
         #   Expenses:Car:Insurance     200 USD
 
-        new_entries, _ = effective_date.effective_date(entries, options_map, None)
+        new_entries, _ = effective_date(entries, options_map, None)
         self.assertEqual(7, len(new_entries))

@@ -1,7 +1,6 @@
 import unittest
 import re
 
-# from beancount.plugins import unrealized
 import beancount_reds_plugins.zerosum.zerosum as zerosum
 from beancount.core import data
 from beancount.parser import options

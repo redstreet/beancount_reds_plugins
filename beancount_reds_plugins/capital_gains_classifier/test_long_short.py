@@ -4,7 +4,7 @@ __license__ = "GNU GPLv3"
 import unittest
 import re
 
-import long_short
+from beancount_reds_plugins.capital_gains_classifier.long_short import long_short
 from beancount.core import data
 from beancount.parser import options
 from beancount import loader
@@ -41,7 +41,7 @@ def get_entries_with_narration(entries, regexp):
 class TestLongShort(unittest.TestCase):
 
     def test_empty_entries(self):
-        entries, _ = long_short.long_short([], options.OPTIONS_DEFAULTS.copy(), config)
+        entries, _ = long_short([], options.OPTIONS_DEFAULTS.copy(), config)
         self.assertEqual([], entries)
 
     @loader.load_doc()
@@ -68,7 +68,7 @@ class TestLongShort(unittest.TestCase):
         #   Assets:Bank         150 USD
         #   Income:Capital-Gains:Long -50 USD
 
-        new_entries, _ = long_short.long_short(entries, options_map, config)
+        new_entries, _ = long_short(entries, options_map, config)
         self.assertEqual(6, len(new_entries))
 
         results = get_entries_with_narration(new_entries, "Sell")
@@ -92,7 +92,7 @@ class TestLongShort(unittest.TestCase):
           Income:Capital-Gains
 
         """
-        new_entries, _ = long_short.long_short(entries, options_map, config)
+        new_entries, _ = long_short(entries, options_map, config)
         self.assertEqual(6, len(new_entries))
         results = get_entries_with_narration(new_entries, "Sell")
         self.assertEqual('Income:Capital-Gains:Short', results[0].postings[2].account)
@@ -120,7 +120,7 @@ class TestLongShort(unittest.TestCase):
           Income:Capital-Gains
 
         """
-        new_entries, _ = long_short.long_short(entries, options_map, config)
+        new_entries, _ = long_short(entries, options_map, config)
         self.assertEqual(8, len(new_entries))
         results = get_entries_with_narration(new_entries, "Sell")
         self.assertEqual('Income:Capital-Gains:Short', results[0].postings[3].account)
@@ -153,7 +153,7 @@ class TestLongShort(unittest.TestCase):
         #   Assets:Bank         150 USD
         #   Income:Capital-Gains:Long -50 USD
 
-        new_entries, _ = long_short.long_short(entries, options_map, config)
+        new_entries, _ = long_short(entries, options_map, config)
         self.assertEqual(6, len(new_entries))
 
         results = get_entries_with_narration(new_entries, "Sell")
@@ -179,7 +179,7 @@ class TestLongShort(unittest.TestCase):
           Expenses:Fees        10 USD
 
         """
-        new_entries, _ = long_short.long_short(entries, options_map, config)
+        new_entries, _ = long_short(entries, options_map, config)
         self.assertEqual(7, len(new_entries))
         results = get_entries_with_narration(new_entries, "Sell")
         self.assertEqual('Income:Capital-Gains:Short', results[0].postings[3].account)
@@ -202,6 +202,6 @@ class TestLongShort(unittest.TestCase):
           Expenses:Fees        10 USD
 
         """
-        new_entries, _ = long_short.long_short(entries, options_map, config)
+        new_entries, _ = long_short(entries, options_map, config)
         self.assertEqual(new_entries, entries)
 
