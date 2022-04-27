@@ -4,12 +4,12 @@ import re
 import time
 
 from beancount.core import data
-from beancount.core import getters
 from ast import literal_eval
+from beancount_reds_plugins.common import common
 
 DEBUG = 0
 
-__plugins__ = ('capital_gains_classifier',)
+__plugins__ = ('gain_loss',)
 
 
 def pretty_print_transaction(t):
@@ -28,7 +28,7 @@ def account_replace(txn, posting, new_account):
     txn.postings.append(new_posting)
 
 
-def capital_gains_classifier(entries, options_map, config):
+def gain_loss(entries, options_map, config):
     """Insert entries for unmatched transactions in zero-sum accounts.
 
     Args:
@@ -73,24 +73,8 @@ def capital_gains_classifier(entries, options_map, config):
             #     for posting in postings:
             #         account = posting.account
 
-    new_open_entries = create_open_directives(new_accounts, entries)
+    new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc="gains_losses")
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Capital gains classifier [{:.1f}s]: {} postings classified.".format(elapsed_time, rewrite_count))
+        print("Gain/loss gains classifier [{:.1f}s]: {} postings classified.".format(elapsed_time, rewrite_count))
     return(new_open_entries + entries, errors)
-
-
-def create_open_directives(new_accounts, entries):
-    meta = data.new_metadata('<zerosum>', 0)
-    # Ensure that the accounts we're going to use to book the postings exist, by
-    # creating open entries for those that we generated that weren't already
-    # existing accounts.
-    earliest_date = entries[0].date
-    open_entries = getters.get_account_open_close(entries)
-    new_open_entries = []
-    for account_ in sorted(new_accounts):
-        if account_ not in open_entries:
-            meta = data.new_metadata(meta['filename'], 0)
-            open_entry = data.Open(meta, earliest_date, account_, None, None)
-            new_open_entries.append(open_entry)
-    return(new_open_entries)
