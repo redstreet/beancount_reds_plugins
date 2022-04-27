@@ -2,22 +2,12 @@
 
 import re
 import time
-
 from beancount.core import data
 from ast import literal_eval
 from beancount_reds_plugins.common import common
 
 DEBUG = 0
-
 __plugins__ = ('gain_loss',)
-
-
-def pretty_print_transaction(t):
-    print(t.date)
-    for p in t.postings:
-        print("            ", p.account, p.position)
-    print("")
-
 
 # replace the account on a given posting with a new account
 def account_replace(txn, posting, new_account):

@@ -17,19 +17,11 @@ import time
 from beancount.core import data
 from ast import literal_eval
 from dateutil import relativedelta
+from beancount.parser import printer
 from beancount_reds_plugins.common import common
 
 DEBUG = 1
-
 __plugins__ = ('long_short',)
-
-
-def pretty_print_transaction(t):
-    print(t.date)
-    for p in t.postings:
-        print("            ", p.account, p.position)
-    print("")
-
 
 def long_short(entries, options_map, config):
     """Replace :Capital-Gains: in transactions with :Capital-Gains:Short: and/or :Capital-Gains:Long:
