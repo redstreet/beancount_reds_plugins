@@ -6,10 +6,11 @@ There are two plugins included here. See the respective `.py` files for info on 
 configure them:
 
 ## 1. long_short:
-Classifies sales into short term or long term capital gains based on how long they have
-been held, like so:
+_For US based investors._
 
-Converts:
+Classifies sales into short term or long term capital gains based on how long they have
+been held. An example illustrates this easily. The plugin converts:
+
 ```
 plugin "long_short" "{
    'generic_account_pat':   ':Capital-Gains',
@@ -61,12 +62,24 @@ to:
 
 As a reference point for performance, the plugin takes 0.02sec to run to modify around
 200 transactions across 20k total transactions on a modern laptop.
+   
+#### Finer points:
+- all postings matching account pattern specified by `generic_account_pat` will be
+  removed from matching transactions
+- the sum of the postings inserted will be equal to the sum of existing postings that
+  fit the account pattern specified by `generic_account_pat`
+- transactions containing the string specified by `short_account_rep` or
+  `long_account_rep` will be left untouched.
+- leap years are handled correctly (IRS defines "long term" as "more than 1 year", not
+  in terms of days)
+- See IRS' definition in `long_short.py`
 
 WARNINGS:
 - price must be defined in the lot reduction (sale) transaction
 - doesn't distinguish between reductions and short purchases (doesn't understand the
   latter)
-- there are probably cases outside the current unit tests that this fails for
+- there may well be cases outside the current unit tests that this fails for. Use at
+  your own risk
 
 
 ## 2. capital_gains_classifier:

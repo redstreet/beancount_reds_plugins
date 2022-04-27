@@ -2,10 +2,13 @@
 
 Invoke it in your beancount source this way:
 plugin "long_short" "{
-   'generic_account_pat':   ':Taxable:Capital-Gains:',
-   'short_account_rep': ':Taxable:Capital-Gains:Short',
-   'long_account_rep':  ':Taxable:Capital-Gains:Long',
+   'generic_account_pat': ':Taxable:Capital-Gains:',
+   'short_account_rep':   ':Taxable:Capital-Gains:Short:',
+   'long_account_rep':    ':Taxable:Capital-Gains:Long:',
    }"
+
+TODO:
+    - support multiple pattern/replacement/replacement sets. Via regexp or via lists
 
 """
 
