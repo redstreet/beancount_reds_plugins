@@ -17,6 +17,7 @@ directories for plugin descriptions.
 `pip3 install beancount-reds-plugins`
 
 Or to install the bleeding edge version from git:
+
 `pip3 install git+https://github.com/redstreet/beancount_reds_plugins`
 
 ## Usage
