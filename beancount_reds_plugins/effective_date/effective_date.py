@@ -1,13 +1,13 @@
 """Beancount plugin to implement per-posting effective dates. See README.md for more."""
 
-from beancount.core import data
-from beancount.core import getters
 from ast import literal_eval
 import copy
 import datetime
 import time
 import string
 import random
+from beancount.core import data
+from beancount_reds_plugins.common import common
 
 DEBUG = 0
 
@@ -137,7 +137,7 @@ def effective_date(entries, options_map, config):
         elapsed_time = time.time() - start_time
         print("effective_date [{:.1f}s]: {} entries inserted.".format(elapsed_time, len(new_entries)))
 
-    new_open_entries = create_open_directives(new_accounts, entries)
+    new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<effective_date>')
     retval = new_open_entries + new_entries + filtered_entries
     return(retval, errors)
 
@@ -288,27 +288,9 @@ def effective_date_transaction(entries, options_map, config):
         elapsed_time = time.time() - start_time
         print("effective_date_transaction [{:.1f}s]: {} entries inserted.".format(elapsed_time, modcount))
 
-    new_open_entries = create_open_directives(new_accounts, entries)
+    new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<effective_date>')
     retval = new_open_entries + new_entries + filtered_entries
     return(retval, errors)
-
-
-def create_open_directives(new_accounts, entries):
-    if not entries:
-        return []
-    meta = data.new_metadata('<zerosum>', 0)
-    # Ensure that the accounts we're going to use to book the postings exist, by
-    # creating open entries for those that we generated that weren't already
-    # existing accounts.
-    earliest_date = entries[0].date
-    open_entries = getters.get_account_open_close(entries)
-    new_open_entries = []
-    for account_ in sorted(new_accounts):
-        if account_ not in open_entries:
-            meta = data.new_metadata(meta['filename'], 0)
-            open_entry = data.Open(meta, earliest_date, account_, None, None)
-            new_open_entries.append(open_entry)
-    return new_open_entries
 
 # TODO
 # -----------------------------------------------------------------------------------------------------------

@@ -15,9 +15,9 @@ TODO:
 import time
 
 from beancount.core import data
-from beancount.core import getters
 from ast import literal_eval
 from dateutil import relativedelta
+from beancount_reds_plugins.common import common
 
 DEBUG = 1
 
@@ -111,30 +111,12 @@ def long_short(entries, options_map, config):
                 rewrite_count_long += 1
 
     # create open entries
-    new_open_entries = create_open_directives(new_accounts, entries)
+    new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<long_short>')
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Capital gains classifier [{:.2f}s]: {} short, {} long postings added.".format(elapsed_time,
+        print("Long/short gains classifier [{:.2f}s]: {} short, {} long postings added.".format(elapsed_time,
             rewrite_count_short, rewrite_count_long))
     return(new_open_entries + entries, errors)
-
-
-def create_open_directives(new_accounts, entries):
-    if not entries:
-        return []
-    meta = data.new_metadata('<long_short>', 0)
-    # Ensure that the accounts we're going to use to book the postings exist, by
-    # creating open entries for those that we generated that weren't already
-    # existing accounts.
-    earliest_date = entries[0].date
-    open_entries = getters.get_account_open_close(entries)
-    new_open_entries = []
-    for account_ in sorted(new_accounts):
-        if account_ not in open_entries:
-            meta = data.new_metadata(meta['filename'], 0)
-            open_entry = data.Open(meta, earliest_date, account_, None, None)
-            new_open_entries.append(open_entry)
-    return(new_open_entries)
 
 # IRS references:
 #

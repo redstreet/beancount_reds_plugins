@@ -2,9 +2,9 @@
 
 import time
 
-from beancount.core import data
-from beancount.core import getters
 from ast import literal_eval
+from beancount.core import data
+from beancount_reds_plugins.common import common
 
 DEBUG = 0
 
@@ -61,26 +61,8 @@ def rename_accounts(entries, options_map, config):
                             new_accounts.append(account)
                     account_replace(entry, posting, account)
 
-    new_open_entries = create_open_directives(new_accounts, entries)
+    new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<rename_accounts>')
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Rename accounts [{:.1f}s]: {} postings renamed.".format(elapsed_time, rename_count))
     return new_open_entries + entries, errors
-
-
-def create_open_directives(new_accounts, entries):
-    if not entries:
-        return []
-    meta = data.new_metadata('<rename_accounts>', 0)
-    # Ensure that the accounts we're going to use to book the postings exist, by
-    # creating open entries for those that we generated that weren't already
-    # existing accounts.
-    earliest_date = entries[0].date
-    open_entries = getters.get_account_open_close(entries)
-    new_open_entries = []
-    for account_ in sorted(new_accounts):
-        if account_ not in open_entries:
-            meta = data.new_metadata(meta['filename'], 0)
-            open_entry = data.Open(meta, earliest_date, account_, None, None)
-            new_open_entries.append(open_entry)
-    return new_open_entries

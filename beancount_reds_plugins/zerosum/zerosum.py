@@ -168,7 +168,7 @@ from collections import defaultdict
 
 from beancount.core import data
 from beancount.core import flags
-from beancount.core import getters
+from beancount_reds_plugins.common import common
 
 DEBUG = 0
 DEFAULT_TOLERANCE = 0.0099
@@ -281,7 +281,7 @@ def zerosum(entries, options_map, config):
                             reprocess = True
                             break
 
-    new_open_entries = create_open_directives(new_accounts, entries)
+    new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<zerosum>')
 
     if DEBUG:
         elapsed_time = time.time() - start_time
@@ -310,23 +310,3 @@ def flag_unmatched(entries, unused_options_map, config):
                     break
         new_entries.append(entry)
     return new_entries, []
-
-
-def create_open_directives(new_accounts, entries):
-    if not entries:
-        return []
-    meta = data.new_metadata('<zerosum>', 0)
-    # Ensure that the accounts we're going to use to book the postings exist, by
-    # creating open entries for those that we generated that weren't already
-    # existing accounts.
-
-    # TODO: should ideally track account specific earliest date. Using this as a proxy
-    earliest_date = entries[0].date
-    open_entries = getters.get_account_open_close(entries)
-    new_open_entries = []
-    for account_ in sorted(new_accounts):
-        if account_ not in open_entries:
-            meta = data.new_metadata(meta['filename'], 0)
-            open_entry = data.Open(meta, earliest_date, account_, None, None)
-            new_open_entries.append(open_entry)
-    return(new_open_entries)
