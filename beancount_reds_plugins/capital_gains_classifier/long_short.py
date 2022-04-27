@@ -62,7 +62,6 @@ def long_short(entries, options_map, config):
         return [posting for posting in entry.postings if (posting.cost and posting.units.number < 0)]
 
     def sale_type(p, entry_date):
-        length_held = entry_date - p.cost.date
         diff = relativedelta.relativedelta(entry_date, p.cost.date)
         gain = (p.cost.number - p.price.number) * abs(p.units.number) # Income is negative
         # relativedelta is used to account for leap years. IRS' definition is at the bottom of the file
@@ -115,7 +114,7 @@ def long_short(entries, options_map, config):
     new_open_entries = create_open_directives(new_accounts, entries)
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Capital gains classifier [{:.1f}s]: {} short, {} long postings added.".format(elapsed_time,
+        print("Capital gains classifier [{:.2f}s]: {} short, {} long postings added.".format(elapsed_time,
             rewrite_count_short, rewrite_count_long))
     return(new_open_entries + entries, errors)
 
