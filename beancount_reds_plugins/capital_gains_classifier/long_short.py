@@ -66,7 +66,7 @@ def long_short(entries, options_map, config):
         diff = relativedelta.relativedelta(entry_date, p.cost.date)
         gain = (p.cost.number - p.price.number) * abs(p.units.number) # Income is negative
         # relativedelta is used to account for leap years. IRS' definition is at the bottom of the file
-        return diff.years > 1 or (diff.years == 1 and diff.days >=1), gain
+        return diff.years > 1 or (diff.years == 1 and (diff.months >= 1 or diff.days >=1)), gain
 
 
     for entry in entries:
