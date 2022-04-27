@@ -84,12 +84,23 @@ def long_short(entries, options_map, config):
 
             # ensure our replacement postings sum up to the original capital gains postings we removed
             diff = orig_sum - (short_gains + long_gains)
-            # divide this diff among short/long. TODO: warn if this is over tolerance threshold, because it
-            # means that the transaction is probably not accounted for correctly
+
+            # divide this diff among short/long. TODO: warn if this is over a threshold, because it means that
+            # the transaction is probably not accounted for correctly
+
             if diff:
-                total = short_gains + long_gains
-                short_gains += (short_gains/total) * diff
-                long_gains += (long_gains/total) * diff
+                if abs(diff) < entry.meta['__tolerances__']['USD']:
+                    # print("Skipping", diff, short_gains, long_gains)
+                    pass
+                elif abs(diff) < 1:
+                    total = short_gains + long_gains
+                    short_gains += (short_gains/total) * diff
+                    long_gains += (long_gains/total) * diff
+                    # print("--------", diff, "      ", short_gains, long_gains)
+                    print("--------", diff)
+                else:
+                    printer.print_entry(entry)
+                    import pdb; pdb.set_trace()
 
             orig_p = orig_gains_postings[0]
             def add_posting(gains, account_repl):
