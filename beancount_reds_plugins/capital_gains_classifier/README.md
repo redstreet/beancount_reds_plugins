@@ -7,14 +7,14 @@ configure them.
 ## 1. long_short:
 _For US based investors._
 
-Classifies sales into short term or long term capital gains based on how long they have
-been held. An example illustrates this easily. The plugin converts:
+Rebooks capital gains income into short term or long term accounts based on how long
+they have been held. Here is an example to illustrate. The plugin converts:
 
 ```
 plugin "long_short" "{
-   'generic_account_pat':   ':Capital-Gains',
-   'short_account_rep': ':Capital-Gains:Short',
-   'long_account_rep':  ':Capital-Gains:Long',
+   'generic_account_pat': ':Capital-Gains',
+   'short_account_rep':   ':Capital-Gains:Short',
+   'long_account_rep':    ':Capital-Gains:Long',
    }"
         
 2014-01-01 open Assets:Brokerage
@@ -65,10 +65,11 @@ As a reference point for performance, the plugin takes 0.02sec to run to modify 
    
 #### Finer points:
 - transactions that will be modified:
-  - only modifies transactions that contain at least one posting with string specified
-    by `generic_account_pat`
-  - however, transactions containing the string specified by `short_account_rep` or
-    `long_account_rep` will be left untouched
+  - only modifies transactions that contain at least one posting with an account string
+    that contains the value specified by `generic_account_pat`
+  - exception: transactions containing any posting with an account string that contains
+    what is specified by `short_account_rep` or `long_account_rep` will be left
+    untouched
 
 - modifications:
   - all postings matching account pattern specified by `generic_account_pat` will be
@@ -77,24 +78,28 @@ As a reference point for performance, the plugin takes 0.02sec to run to modify 
     fit the account pattern specified by `generic_account_pat`
 
 - definition of long vs short:
-  - See IRS' definition in `long_short.py`
-  - leap years are handled correctly (IRS defines "long term" as "more than 1 year", not
-    in terms of days)
+  - implements [IRS' definition](https://www.irs.gov/publications/p550#en_US_publink100010540)
+    of "long term" as "more than 1 year" (which could be >= 366 or 367 days depending on
+    whether a leap year is involved
 
 - price must be defined in the lot reduction (sale) transaction
 
 
-## 2. gain_loss (WARNING: experimental / under development)
+## 2. gain_loss (Warning: under development)
 
-Classifies sales into losses and gains (NOT into long and short).
+Rebooks capital gains income into losses and gains.
 
-Rewrites transactions from an account like:
-Capital-Gains:Account
+For example, the plugin rebooks transactions from an account like:
+```
+Income:Capital-Gains:GTrade
+```
 
 into:
 
-Capital-Gains:Losses:Account
-Capital-Gains:Gains:Account
+```
+Income:Capital-Gains:Losses:GTrade
+Income:Capital-Gains:Gains:GTrade
+```
 
 based on whether the posting into that account is positive or negative.
 
