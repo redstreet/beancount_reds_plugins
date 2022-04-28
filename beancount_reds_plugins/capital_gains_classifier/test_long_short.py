@@ -76,6 +76,37 @@ class TestLongShort(unittest.TestCase):
         self.assertEqual(Decimal("-50.00"), results[0].postings[2].units.number)
 
     @loader.load_doc()
+    def test_long_exactly_one_year_and_month(self, entries, _, options_map):
+        """
+        2014-01-01 open Assets:Brokerage
+        2014-01-01 open Assets:Bank
+        2014-01-01 open Income:Capital-Gains
+
+        2014-02-01 * "Buy"
+          Assets:Brokerage    100 ORNG {1 USD}
+          Assets:Bank        -100 USD
+
+        2015-03-01 * "Sell"
+          Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+          Assets:Bank         150 USD
+          Income:Capital-Gains
+
+        """
+
+        # # # Above should turn into:
+        # 2014-03-01 * "Sell"
+        #   Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+        #   Assets:Bank         150 USD
+        #   Income:Capital-Gains:Long -50 USD
+
+        new_entries, _ = long_short(entries, options_map, config)
+        self.assertEqual(6, len(new_entries))
+
+        results = get_entries_with_narration(new_entries, "Sell")
+        self.assertEqual('Income:Capital-Gains:Long', results[0].postings[2].account)
+        self.assertEqual(Decimal("-50.00"), results[0].postings[2].units.number)
+
+    @loader.load_doc()
     def test_short(self, entries, _, options_map):
         """
         2014-01-01 open Assets:Brokerage
