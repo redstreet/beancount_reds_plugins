@@ -228,7 +228,7 @@ class TestLongShort(unittest.TestCase):
           Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
           Assets:Bank         140 USD
           Income:Capital-Gains:Short -20 USD
-          Income:Capital-Gains:Long  -30 USD
+          Income:Capital-Gains       -30 USD
           Expenses:Fees        10 USD
 
         """
