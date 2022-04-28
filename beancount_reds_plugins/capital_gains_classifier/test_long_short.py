@@ -8,7 +8,6 @@ from beancount_reds_plugins.capital_gains_classifier.long_short import long_shor
 from beancount.core import data
 from beancount.parser import options
 from beancount import loader
-import datetime
 from decimal import Decimal
 
 # TODO:
@@ -21,6 +20,7 @@ config = """{
    'short_account_rep': ':Capital-Gains:Short',
    'long_account_rep':  ':Capital-Gains:Long',
    }"""
+
 
 def get_entries_with_narration(entries, regexp):
     """Return the entries whose narration matches the regexp.
@@ -128,7 +128,6 @@ class TestLongShort(unittest.TestCase):
         self.assertEqual('Income:Capital-Gains:Long', results[0].postings[4].account)
         self.assertEqual(Decimal("-150.00"), results[0].postings[4].units.number)
 
-
     @loader.load_doc()
     def test_leap_year(self, entries, _, options_map):
         """
@@ -204,4 +203,3 @@ class TestLongShort(unittest.TestCase):
         """
         new_entries, _ = long_short(entries, options_map, config)
         self.assertEqual(new_entries, entries)
-

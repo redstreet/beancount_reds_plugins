@@ -1,4 +1,5 @@
-"""See accompanying README.md"""
+"""Classifies and rebooks capital gains accounts into separate gains and losses accounts
+"""
 
 import re
 import time
@@ -9,8 +10,9 @@ from beancount_reds_plugins.common import common
 DEBUG = 0
 __plugins__ = ('gain_loss',)
 
-# replace the account on a given posting with a new account
+
 def account_replace(txn, posting, new_account):
+    """replace the account on a given posting with a new account"""
     # create a new posting with the new account, then remove old and add new
     # from parent transaction
     new_posting = posting._replace(account=new_account)

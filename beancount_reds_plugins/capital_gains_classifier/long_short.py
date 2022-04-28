@@ -17,11 +17,11 @@ import time
 from beancount.core import data
 from ast import literal_eval
 from dateutil import relativedelta
-from beancount.parser import printer
 from beancount_reds_plugins.common import common
 
 DEBUG = 1
 __plugins__ = ('long_short',)
+
 
 def long_short(entries, options_map, config):
     """Replace :Capital-Gains: in transactions with :Capital-Gains:Short: and/or :Capital-Gains:Long:
@@ -42,7 +42,8 @@ def long_short(entries, options_map, config):
         return any(posting.cost and posting.units.number < 0 for posting in entry.postings)
 
     def contains_shortlong_postings(entry):
-        return any(short_account_rep in posting.account or long_account_rep in posting.account for posting in entry.postings)
+        return any(short_account_rep in posting.account or long_account_rep in posting.account
+                   for posting in entry.postings)
 
     def contains_generic(entry):
         return any(generic_account_pat in posting.account for posting in entry.postings)
@@ -55,10 +56,9 @@ def long_short(entries, options_map, config):
 
     def sale_type(p, entry_date):
         diff = relativedelta.relativedelta(entry_date, p.cost.date)
-        gain = (p.cost.number - p.price.number) * abs(p.units.number) # Income is negative
+        gain = (p.cost.number - p.price.number) * abs(p.units.number)  # Income is negative
         # relativedelta is used to account for leap years. IRS' definition is at the bottom of the file
-        return diff.years > 1 or (diff.years == 1 and (diff.months >= 1 or diff.days >=1)), gain
-
+        return diff.years > 1 or (diff.years == 1 and (diff.months >= 1 or diff.days >= 1)), gain
 
     for entry in entries:
 
@@ -107,7 +107,7 @@ def long_short(entries, options_map, config):
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Long/short gains classifier [{:.2f}s]: {} short, {} long postings added.".format(elapsed_time,
-            rewrite_count_short, rewrite_count_long))
+              rewrite_count_short, rewrite_count_long))
     return(new_open_entries + entries, errors)
 
 # IRS references:

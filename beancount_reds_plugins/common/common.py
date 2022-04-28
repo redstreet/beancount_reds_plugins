@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
+"""Common code for beancount_reds_plugins"""
 
 from beancount.core import data
 from beancount.core import getters
 
-"""Common code for beancount_reds_plugins"""
 
 def create_open_directives(new_accounts, entries, meta_desc='<beancount_reds_plugins_common>'):
     """Create open entries that don't already exist"""
