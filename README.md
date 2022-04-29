@@ -6,8 +6,8 @@ See README.md in individual directories for plugin descriptions.
 
 ## Plugin list:
 - __[capital_gains_classifier](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/capital_gains_classifier#readme)__:
-  rebooks capital gains into separate long and short accounts (and separate gains and
-  losses accounts (under development))
+  rebooks capital gains into separate long and short accounts, and separate gains and
+  losses accounts
 - __[effective_date](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/effective_date#readme)__:
   enables per-posting dates (each posting in a transaction can have a different date)
 - __[rename_accounts](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/rename_accounts#readme)__:

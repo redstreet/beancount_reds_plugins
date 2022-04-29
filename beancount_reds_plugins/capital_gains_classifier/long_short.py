@@ -45,9 +45,6 @@ def long_short(entries, options_map, config):
     acct_match = re.compile(acct_match_regex)
     account_to_replace, short_account_repl, long_account_repl = config_obj[acct_match_regex]
 
-    def isreduction(entry):
-        return any(posting.cost and posting.units.number < 0 for posting in entry.postings)
-
     def contains_shortlong_postings(entry):
         return any(short_account_repl in posting.account or long_account_repl in posting.account
                    for posting in entry.postings)
@@ -56,10 +53,10 @@ def long_short(entries, options_map, config):
         return any(acct_match.match(posting.account) for posting in entry.postings)
 
     def is_interesting_entry(entry):
-        return isreduction(entry) and contains_generic(entry) and not contains_shortlong_postings(entry)
+        return contains_generic(entry) and not contains_shortlong_postings(entry)
 
     def reductions(entry):
-        return [posting for posting in entry.postings if (posting.cost and posting.units.number < 0)]
+        return [p for p in entry.postings if (p.cost and p.units.number and p.price)]
 
     def sale_type(p, entry_date):
         diff = relativedelta.relativedelta(entry_date, p.cost.date)

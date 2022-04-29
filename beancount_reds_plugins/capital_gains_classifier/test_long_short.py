@@ -232,3 +232,27 @@ class TestLongShort(unittest.TestCase):
         results = get_entries_with_narration(new_entries, "Sell")
         self.assertEqual('Income:Capital-Gains:Short', results[0].postings[3].account)
         self.assertEqual(Decimal("-50.00"), results[0].postings[3].units.number)
+
+    @loader.load_doc()
+    def test_shortposition_reduction(self, entries, _, options_map):
+        """
+        2014-01-01 open Assets:Brokerage
+        2014-01-01 open Assets:Bank
+        2014-01-01 open Expenses:Fees
+        2014-01-01 open Income:Capital-Gains
+
+        2014-02-01 * "Buy Short position"
+          Assets:Brokerage   -100 ORNG {1 USD}
+          Assets:Bank         100 USD
+
+        2015-03-01 * "Sell Short position"
+          Assets:Brokerage    100 ORNG {1 USD} @ 0.50 USD
+          Assets:Bank         -50 USD
+          Income:Capital-Gains
+
+        """
+        new_entries, _ = long_short(entries, options_map, config)
+        self.assertEqual(7, len(new_entries))
+        results = get_entries_with_narration(new_entries, "Sell Short position")
+        self.assertEqual('Income:Capital-Gains:Long', results[0].postings[2].account)
+        self.assertEqual(Decimal("-50.00"), results[0].postings[2].units.number)

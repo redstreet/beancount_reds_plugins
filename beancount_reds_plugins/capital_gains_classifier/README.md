@@ -59,31 +59,40 @@ to:
   Income:Capital-Gains:Long -150 USD
 ```
 
-As a reference point for performance, the plugin takes 0.02sec to run to modify around
+As a reference point for performance, the plugin takes 0.03sec to run to modify around
 200 transactions across 20k total transactions on a modern laptop.
    
 #### Finer points:
+
+The plugin config format is:
+```
+<key> : [<substring_to_replace>, <replacement_for_short-term>, <replacement_for_long-term>]
+```
+  where <key> is a regexp to match in a posting account.
+  Note that <key> is a regexp while the remaining values are strings
+
 - transactions that will be modified:
-  - transactions that contain at least one posting with an account string that contains
-    the value specified by `generic_account_pat`, *and* have at least one lot reduction
-    posting
-    - the lot reduction posting must specify a negative number of units. This means this
-      plugin does not work for short positions, where a lot reduction posting contains a
-      [positive number](https://beancount.github.io/docs/how_inventories_work.html#homogeneous-and-mixed-inventories) of units
+  - transactions that contain at least one posting with an account string that matches
+    `<key>`
+    - such transactions are assumed to contain a lot reduction posting. The lot
+      reduction is typically a sale of a (long position) commodity, meaning it involves
+      negative number for its units. However, the plugin also woks for closing short
+      positions, where a lot reduction posting involves a [positive number](https://beancount.github.io/docs/how_inventories_work.html#homogeneous-and-mixed-inventories)
+      of units
   - exception: transactions containing any posting with an account string that contains
-    what is specified by `short_account_rep` or `long_account_rep` will be left
-    untouched
+    what is specified by `<replacement_for_short-term>` or `<replacement_for_long-term>`
+    will be left untouched
 
 - modifications:
-  - all postings matching account pattern specified by `generic_account_pat` will be
+  - all postings matching account pattern specified by `<key>` will be
     removed from matching transactions
   - the sum of the postings inserted will be equal to the sum of existing postings that
-    fit the account pattern specified by `generic_account_pat`
+    fit the account pattern specified by `<key>`
 
 - definition of long vs short:
   - implements [IRS' definition](https://www.irs.gov/publications/p550#en_US_publink100010540)
     of "long term" as "more than 1 year" (which could be >= 366 or 367 days depending on
-    whether a leap year is involved
+    whether a leap year is involved)
 
 - price must be defined in the lot reduction (sale) transaction
 
