@@ -61,19 +61,20 @@ to:
 
 As a reference point for performance, the plugin takes 0.03sec to run to modify around
 200 transactions across 20k total transactions on a modern laptop.
-   
-#### Finer points:
+
+#### Config:
 
 The plugin config format is:
 ```
-<key> : [<substring_to_replace>, <replacement_for_short-term>, <replacement_for_long-term>]
+<match_regexp> : [<substring_to_replace>, <replacement_for_short-term>, <replacement_for_long-term>]
 ```
-  where <key> is a regexp to match in a posting account.
-  Note that <key> is a regexp while the remaining values are strings
+  where `<match_regexp>` is a regexp to match in a posting account.
+   
+#### Notes:
 
 - transactions that will be modified:
   - transactions that contain at least one posting with an account string that matches
-    `<key>`
+    `<match_regexp>`
     - such transactions are assumed to contain a lot reduction posting. The lot
       reduction is typically a sale of a (long position) commodity, meaning it involves
       negative number for its units. However, the plugin also woks for closing short
@@ -84,10 +85,10 @@ The plugin config format is:
     will be left untouched
 
 - modifications:
-  - all postings matching account pattern specified by `<key>` will be
+  - all postings matching account pattern specified by `<match_regexp>` will be
     removed from matching transactions
   - the sum of the postings inserted will be equal to the sum of existing postings that
-    fit the account pattern specified by `<key>`
+    fit the account pattern specified by `<match_regexp>`
 
 - definition of long vs short:
   - implements [IRS' definition](https://www.irs.gov/publications/p550#en_US_publink100010540)

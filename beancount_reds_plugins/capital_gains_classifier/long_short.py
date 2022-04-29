@@ -2,17 +2,17 @@
 according to IRS, US.
 
 Invoke it in your beancount source this way:
-<key> : [<substring_to_replace>, <replacement_for_short-term>, <replacement_for_long-term>]
+    <match_regexp> : [<substring_to_replace>, <replacement_for_short-term>, <replacement_for_long-term>]
 
-  where <key> is a regexp to match in a posting account.
-  Note that <key> is a regexp while the remaining values are strings
+  where <match_regexp> is a regexp to match in a posting account.
+  Note that <match_regexp> is a regexp while the remaining values are strings
 
 Example:
 plugin "long_short" "{
     'Income.*:Taxable:Capital-Gains:' : [':Capital-Gains', ':Capital-Gains:Short', ':Capital-Gains:Long']
     }"
 
-Currently, only a single key in the dictionary is supported. Additional keys will be ignored
+Currently, only a single match_regexp in the dictionary is supported. Additional keys will be ignored.
 
 TODO:
     - support multiple pattern/replacement/replacement sets. Via regexp or via lists
