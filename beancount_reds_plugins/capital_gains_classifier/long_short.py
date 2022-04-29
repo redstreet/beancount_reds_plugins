@@ -36,7 +36,7 @@ def long_short(entries, options_map, config):
     """
 
     start_time = time.time()
-    rewrite_count_short = rewrite_count_long = 0
+    rewrite_count_matches = rewrite_count_short = rewrite_count_long = 0
     new_accounts = set()
     errors = []
 
@@ -74,6 +74,7 @@ def long_short(entries, options_map, config):
         # replace cap gains account with above
 
         if isinstance(entry, data.Transaction) and is_interesting_entry(entry):
+            rewrite_count_matches += 1
             sale_types = [sale_type(p, entry.date) for p in reductions(entry)]
             short_gains = sum(s[1] for s in sale_types if s[0] is False)
             long_gains = sum(s[1] for s in sale_types) - short_gains
@@ -113,8 +114,8 @@ def long_short(entries, options_map, config):
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<long_short>')
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Long/short gains classifier [{:.2f}s]: {} short, {} long postings added.".format(elapsed_time,
-              rewrite_count_short, rewrite_count_long))
+        print("Long/short gains classifier [{:.2f}s]: {} matched. {} short, {} long postings added.".format(
+              elapsed_time, rewrite_count_matches, rewrite_count_short, rewrite_count_long))
     return(new_open_entries + entries, errors)
 
 # IRS references:
