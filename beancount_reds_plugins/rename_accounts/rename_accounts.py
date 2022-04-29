@@ -37,23 +37,23 @@ def rename_accounts(entries, options_map, config):
     new_accounts = []
     errors = []
 
-    renames = literal_eval(config)  # TODO: error check
+    renames = literal_eval(config)
 
     for entry in entries:
         if isinstance(entry, data.Transaction):
             postings = list(entry.postings)
             for posting in postings:
                 account = posting.account
-                if any(r in account for r in renames):
-                    for r in renames:
+                for r in renames:
+                    if r in account:
                         account = account.replace(r, renames[r])
                         rename_count += 1
                         if account not in new_accounts:
                             new_accounts.append(account)
-                    account_replace(entry, posting, account)
+                        account_replace(entry, posting, account)
 
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<rename_accounts>')
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Rename accounts [{:.1f}s]: {} postings renamed.".format(elapsed_time, rename_count))
+        print("Rename accounts [{:.2f}s]: {} postings renamed.".format(elapsed_time, rename_count))
     return new_open_entries + entries, errors
