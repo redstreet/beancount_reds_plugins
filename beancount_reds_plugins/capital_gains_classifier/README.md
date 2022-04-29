@@ -1,6 +1,8 @@
 # Capital gains classifier plugins for Beancount
 
-There are two plugins included here. See the respective `.py` files for info on how to
+Closing out a commodity position results in gains or losses, which could further be (in
+the US) short-term or long-term, for tax purposes. There are two plugins included here
+that classify and rebook capital gains. See the respective `.py` files for how to
 configure them.
 
 ## 1. long_short:
@@ -88,10 +90,9 @@ As a reference point for performance, the plugin takes 0.02sec to run to modify 
 
 ## 2. gain_loss
 
-Rebooks capital gains income into losses and gains based on the amount being positive or
-negative. Here is an example to illustrate. The plugin converts:
+Rebooks capital gains income into losses and gains based on the posting amount being
+positive or negative. Here is an example to illustrate. The plugin converts:
 
-For example, the plugin rebooks transactions from an account like:
 ```
 plugin "gain_loss" "{
   'Income.*:Capital-Gains.*' : [':Capital-Gains',  ':Capital-Gains:Gains',  ':Capital-Gains:Losses'],
@@ -140,4 +141,18 @@ plugin "gain_loss" "{
  Assets:Brokerage   -100 ORNG {1 USD} @ 0.50 USD
  Assets:Bank          50 USD
  Income:Capital-Gains:Losses
+```
+
+## Notes
+Here is an example of how to invoke both plugins:
+
+```
+plugin "beancount_reds_plugins.capital_gains_classifier.long_short" "{
+  'Income.*:Taxable:Capital-Gains': [':Capital-Gains', ':Capital-Gains:Short', ':Capital-Gains:Long']
+}"
+
+plugin "beancount_reds_plugins.capital_gains_classifier.gain_loss" "{
+ 'Income.*:Taxable:Capital-Gains:Long.*':  [':Long',  ':Long:Gains',  ':Long:Losses'],
+ 'Income.*:Taxable:Capital-Gains:Short.*': [':Short', ':Short:Gains', ':Short:Losses'],
+ }"
 ```
