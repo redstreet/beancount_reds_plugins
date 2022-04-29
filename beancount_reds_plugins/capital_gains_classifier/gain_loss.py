@@ -29,10 +29,14 @@ def gain_loss(entries, options_map, config):
       options_map: a dict of options parsed from the file (not used)
 
       config: A configuration string, which is intended to be a Python dict
-      listing rewrites. Eg: "{'Expenses:Taxes' : 'Income:Taxes'}"
+      listing rewrites. Eg:
 
-     "Income.*Capital-Gains:Long:.*",  ":Long:",  ":Long:Losses:",  ":Long:Gains:"
-     "Income.*Capital-Gains:Short:.*, ":Short:, ":Short:Losses:, ":Short:Gains:"
+      {
+        "Income.*:Capital-Gains.*" : [":Capital-Gains",  ":Capital-Gains:Gains",  ":Capital-Gains:Losses"],
+      }
+
+      The key is the string to match in a posting account. The value is a tuple of 3 elements: pattern to
+      replace, replacement for gains, and replacement for losses.
 
     Returns:
       A tuple of entries and errors. """
@@ -46,24 +50,19 @@ def gain_loss(entries, options_map, config):
 
     for entry in entries:
         if isinstance(entry, data.Transaction):
-            # matched = False
             postings = list(entry.postings)
             for posting in postings:
                 account = posting.account
                 if any(re.match(r, account) for r in rewrites):
-                    # matched = True
                     for r in rewrites:
                         if posting.units.number < 0:
-                            account = account.replace(rewrites[r][0], rewrites[r][1])  # losses
+                            account = account.replace(rewrites[r][0], rewrites[r][1])  # gains
                         else:
-                            account = account.replace(rewrites[r][0], rewrites[r][2])  # gains
+                            account = account.replace(rewrites[r][0], rewrites[r][2])  # losses
                         rewrite_count += 1
                         if account not in new_accounts:
                             new_accounts.append(account)
                     account_replace(entry, posting, account)
-            # if matched:
-            #     for posting in postings:
-            #         account = posting.account
 
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc="gains_losses")
     if DEBUG:
