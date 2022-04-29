@@ -79,10 +79,13 @@ def long_short(entries, options_map, config):
             short_gains = sum(s[1] for s in sale_types if s[0] is False)
             long_gains = sum(s[1] for s in sale_types) - short_gains
 
-            # remove generic gains postings
+            # record and remove generic capital gains postings
             orig_gains_postings = [p for p in entry.postings if acct_match.match(p.account)]
-            orig_p = orig_gains_postings[0]
             orig_sum = sum(p.units.number for p in orig_gains_postings)
+            for p in orig_gains_postings:
+                entry.postings.remove(p)
+
+            # ensure our replacement postings sum up to the original capital gains postings we removed
             diff = orig_sum - (short_gains + long_gains)
             # divide this diff among short/long. TODO: warn if this is over tolerance threshold, because it
             # means that the transaction is probably not accounted for correctly
@@ -91,9 +94,7 @@ def long_short(entries, options_map, config):
                 short_gains += (short_gains/total) * diff
                 long_gains += (long_gains/total) * diff
 
-            for p in orig_gains_postings:
-                entry.postings.remove(p)
-
+            orig_p = orig_gains_postings[0]
             def add_posting(gains, account_repl):
                 new_units = orig_p.units._replace(number=gains)
                 new_account = orig_p.account.replace(account_to_replace, account_repl)
