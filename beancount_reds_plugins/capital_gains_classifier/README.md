@@ -1,6 +1,5 @@
 # Capital gains classifier plugins for Beancount
 
-
 There are two plugins included here. See the respective `.py` files for info on how to
 configure them.
 
@@ -12,9 +11,7 @@ they have been held. Here is an example to illustrate. The plugin converts:
 
 ```
 plugin "long_short" "{
-   'generic_account_pat': ':Capital-Gains',
-   'short_account_rep':   ':Capital-Gains:Short',
-   'long_account_rep':    ':Capital-Gains:Long',
+   'Income.*Capital-Gains': [':Capital-Gains', ':Capital-Gains:Short', ':Capital-Gains:Long']
    }"
         
 2014-01-01 open Assets:Brokerage
@@ -85,21 +82,58 @@ As a reference point for performance, the plugin takes 0.02sec to run to modify 
 - price must be defined in the lot reduction (sale) transaction
 
 
-## 2. gain_loss (Warning: under development)
+## 2. gain_loss
 
-Rebooks capital gains income into losses and gains.
+Rebooks capital gains income into losses and gains based on the amount being positive or
+negative. Here is an example to illustrate. The plugin converts:
 
 For example, the plugin rebooks transactions from an account like:
 ```
-Income:Capital-Gains:GTrade
+plugin "gain_loss" "{
+  'Income.*:Capital-Gains.*' : [':Capital-Gains',  ':Capital-Gains:Gains',  ':Capital-Gains:Losses'],
+}"
+
+2014-01-01 open Assets:Brokerage
+2014-01-01 open Assets:Bank
+2014-01-01 open Income:Capital-Gains
+
+2014-02-01 * "Buy"
+ Assets:Brokerage    200 ORNG {1 USD}
+ Assets:Bank        -200 USD
+
+2016-03-01 * "Sell"
+ Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+ Assets:Bank         150 USD
+ Income:Capital-Gains
+
+2016-03-02 * "Sell"
+ Assets:Brokerage   -100 ORNG {1 USD} @ 0.50 USD
+ Assets:Bank          50 USD
+ Income:Capital-Gains
 ```
 
-into:
+to:
 
 ```
-Income:Capital-Gains:Losses:GTrade
-Income:Capital-Gains:Gains:GTrade
+plugin "gain_loss" "{
+  'Income.*:Capital-Gains.*' : [':Capital-Gains',  ':Capital-Gains:Gains',  ':Capital-Gains:Losses'],
+}"
+
+2014-01-01 open Assets:Brokerage
+2014-01-01 open Assets:Bank
+2014-01-01 open Income:Capital-Gains
+
+2014-02-01 * "Buy"
+ Assets:Brokerage    200 ORNG {1 USD}
+ Assets:Bank        -200 USD
+
+2016-03-01 * "Sell"
+ Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+ Assets:Bank         150 USD
+ Income:Capital-Gains:Gains
+
+2016-03-02 * "Sell"
+ Assets:Brokerage   -100 ORNG {1 USD} @ 0.50 USD
+ Assets:Bank          50 USD
+ Income:Capital-Gains:Losses
 ```
-
-based on whether the posting into that account is positive or negative.
-

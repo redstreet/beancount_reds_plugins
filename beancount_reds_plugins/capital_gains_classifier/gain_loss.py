@@ -24,12 +24,12 @@ def gain_loss(entries, options_map, config):
     """Replace :Capital-Gains: in transactions with :Capital-Gains:Gains: or :Capital-Gains:Losses:
 
       config: a dict listing rewrites. Eg:
-      {
-        "Income.*:Capital-Gains.*" : [":Capital-Gains",  ":Capital-Gains:Gains",  ":Capital-Gains:Losses"],
+      { "Income.*:Capital-Gains.*" : [":Capital-Gains",  ":Capital-Gains:Gains",  ":Capital-Gains:Losses"],
         ...
       }
 
       <key> : [<substring_to_replace>, <replacement_for_gains>, <replacement_for_losses>]
+      Note that <key> is a regexp while the remaining values are strings
 
       where <key> is a regexp to match in a posting account.
       """
@@ -59,5 +59,5 @@ def gain_loss(entries, options_map, config):
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc="gains_losses")
     if DEBUG:
         elapsed_time = time.time() - start_time
-        print("Gain/loss gains classifier [{:.1f}s]: {} postings classified.".format(elapsed_time, rewrite_count))
+        print("Gain/loss gains classifier [{:.2f}s]: {} postings classified.".format(elapsed_time, rewrite_count))
     return(new_open_entries + entries, errors)

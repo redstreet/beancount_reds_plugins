@@ -16,9 +16,7 @@ from decimal import Decimal
 # def test_long_leap_year(self, entries, _, options_map):
 
 config = """{
-   'generic_account_pat':   ':Capital-Gains',
-   'short_account_rep': ':Capital-Gains:Short',
-   'long_account_rep':  ':Capital-Gains:Long',
+   'Income.*:Capital-Gains': [':Capital-Gains', ':Capital-Gains:Short', ':Capital-Gains:Long']
    }"""
 
 
@@ -43,6 +41,26 @@ class TestLongShort(unittest.TestCase):
     def test_empty_entries(self):
         entries, _ = long_short([], options.OPTIONS_DEFAULTS.copy(), config)
         self.assertEqual([], entries)
+
+    @loader.load_doc()
+    def test_do_not_touch(self, entries, _, options_map):
+        """
+        plugin "beancount.plugins.auto"
+
+        2014-02-01 * "Buy"
+          Assets:Brokerage    100 ORNG {1 USD}
+          Assets:Bank        -100 USD
+
+        2014-03-01 * "Sell"
+          Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
+          Assets:Bank         140 USD
+          Income:Capital-Gains:Short -20 USD
+          Income:Capital-Gains       -30 USD
+          Expenses:Fees        10 USD
+
+        """
+        new_entries, _ = long_short(entries, options_map, config)
+        self.assertEqual(new_entries, entries)
 
     @loader.load_doc()
     def test_long(self, entries, _, options_map):
@@ -214,23 +232,3 @@ class TestLongShort(unittest.TestCase):
         results = get_entries_with_narration(new_entries, "Sell")
         self.assertEqual('Income:Capital-Gains:Short', results[0].postings[3].account)
         self.assertEqual(Decimal("-50.00"), results[0].postings[3].units.number)
-
-    @loader.load_doc()
-    def test_do_not_touch(self, entries, _, options_map):
-        """
-        plugin "beancount.plugins.auto"
-
-        2014-02-01 * "Buy"
-          Assets:Brokerage    100 ORNG {1 USD}
-          Assets:Bank        -100 USD
-
-        2014-03-01 * "Sell"
-          Assets:Brokerage   -100 ORNG {1 USD} @ 1.50 USD
-          Assets:Bank         140 USD
-          Income:Capital-Gains:Short -20 USD
-          Income:Capital-Gains       -30 USD
-          Expenses:Fees        10 USD
-
-        """
-        new_entries, _ = long_short(entries, options_map, config)
-        self.assertEqual(new_entries, entries)

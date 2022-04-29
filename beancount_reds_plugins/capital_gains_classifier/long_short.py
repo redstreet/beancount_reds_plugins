@@ -2,17 +2,24 @@
 according to IRS, US.
 
 Invoke it in your beancount source this way:
+<key> : [<substring_to_replace>, <replacement_for_short-term>, <replacement_for_long-term>]
+
+  where <key> is a regexp to match in a posting account.
+  Note that <key> is a regexp while the remaining values are strings
+
+Example:
 plugin "long_short" "{
-   'generic_account_pat': ':Taxable:Capital-Gains:',
-   'short_account_rep':   ':Taxable:Capital-Gains:Short:',
-   'long_account_rep':    ':Taxable:Capital-Gains:Long:',
-   }"
+    'Income.*:Taxable:Capital-Gains:' : [':Capital-Gains', ':Capital-Gains:Short', ':Capital-Gains:Long']
+    }"
+
+Currently, only a single key in the dictionary is supported. Additional keys will be ignored
 
 TODO:
     - support multiple pattern/replacement/replacement sets. Via regexp or via lists
 
 """
 
+import re
 import time
 
 from beancount.core import data
@@ -34,20 +41,19 @@ def long_short(entries, options_map, config):
     errors = []
 
     config_obj = literal_eval(config)
-    generic_account_pat = config_obj.pop('generic_account_pat', {})
-    # Turn into regex
-    short_account_rep = config_obj.pop('short_account_rep', {})
-    long_account_rep = config_obj.pop('long_account_rep', {})
+    acct_match_regex = next(iter(config_obj))
+    acct_match = re.compile(acct_match_regex)
+    account_to_replace, short_account_repl, long_account_repl = config_obj[acct_match_regex]
 
     def isreduction(entry):
         return any(posting.cost and posting.units.number < 0 for posting in entry.postings)
 
     def contains_shortlong_postings(entry):
-        return any(short_account_rep in posting.account or long_account_rep in posting.account
+        return any(short_account_repl in posting.account or long_account_repl in posting.account
                    for posting in entry.postings)
 
     def contains_generic(entry):
-        return any(generic_account_pat in posting.account for posting in entry.postings)
+        return any(acct_match.match(posting.account) for posting in entry.postings)
 
     def is_interesting_entry(entry):
         return isreduction(entry) and contains_generic(entry) and not contains_shortlong_postings(entry)
@@ -73,12 +79,12 @@ def long_short(entries, options_map, config):
             long_gains = sum(s[1] for s in sale_types) - short_gains
 
             # remove generic gains postings
-            orig_gains_postings = [p for p in entry.postings if generic_account_pat in p.account]
+            orig_gains_postings = [p for p in entry.postings if acct_match.match(p.account)]
             orig_p = orig_gains_postings[0]
             orig_sum = sum(p.units.number for p in orig_gains_postings)
-            # TODO: not clear if there are unsafe cases that the code below will do incorrect thing for
             diff = orig_sum - (short_gains + long_gains)
-            # divide this diff among short/long. these are typically for expense transactions
+            # divide this diff among short/long. TODO: warn if this is over tolerance threshold, because it
+            # means that the transaction is probably not accounted for correctly
             if diff:
                 total = short_gains + long_gains
                 short_gains += (short_gains/total) * diff
@@ -87,20 +93,20 @@ def long_short(entries, options_map, config):
             for p in orig_gains_postings:
                 entry.postings.remove(p)
 
-            def add_posting(gains, account_rep):
+            def add_posting(gains, account_repl):
                 new_units = orig_p.units._replace(number=gains)
-                new_account = orig_p.account.replace(generic_account_pat, account_rep)
+                new_account = orig_p.account.replace(account_to_replace, account_repl)
                 new_accounts.add(new_account)
                 new_posting = orig_p._replace(account=new_account, units=new_units)
                 entry.postings.append(new_posting)
 
             # create and add upto two new postings
             if short_gains:
-                add_posting(short_gains, short_account_rep)
+                add_posting(short_gains, short_account_repl)
                 rewrite_count_short += 1
 
             if long_gains:
-                add_posting(long_gains, long_account_rep)
+                add_posting(long_gains, long_account_repl)
                 rewrite_count_long += 1
 
     # create open entries
