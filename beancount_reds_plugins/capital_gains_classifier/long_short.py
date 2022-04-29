@@ -1,4 +1,5 @@
-"""Classifies Capital Gains accounts into Short and Long based on length held according to IRS, US.
+"""Rebooks capital gains accounts into separate short-term and long-term accounts based on length held
+according to IRS, US.
 
 Invoke it in your beancount source this way:
 plugin "long_short" "{

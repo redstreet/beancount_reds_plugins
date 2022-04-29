@@ -85,3 +85,4 @@ class TestLongShort(unittest.TestCase):
         self.assertEqual('Income:Capital-Gains:Gains',  results[0].postings[2].account)
         self.assertEqual('Income:Capital-Gains:Losses', results[1].postings[2].account)
         self.assertEqual(Decimal("-50.00"), results[0].postings[2].units.number)
+        self.assertEqual(Decimal("50.00"), results[1].postings[2].units.number)

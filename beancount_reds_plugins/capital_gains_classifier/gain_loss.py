@@ -1,4 +1,4 @@
-"""Classifies and rebooks capital gains accounts into separate gains and losses accounts
+"""Rebooks capital gains accounts into separate gains and losses accounts
 """
 
 import re
@@ -21,32 +21,24 @@ def account_replace(txn, posting, new_account):
 
 
 def gain_loss(entries, options_map, config):
-    """Insert entries for unmatched transactions in zero-sum accounts.
+    """Replace :Capital-Gains: in transactions with :Capital-Gains:Gains: or :Capital-Gains:Losses:
 
-    Args:
-      entries: a list of entry instances
-
-      options_map: a dict of options parsed from the file (not used)
-
-      config: A configuration string, which is intended to be a Python dict
-      listing rewrites. Eg:
-
+      config: a dict listing rewrites. Eg:
       {
         "Income.*:Capital-Gains.*" : [":Capital-Gains",  ":Capital-Gains:Gains",  ":Capital-Gains:Losses"],
+        ...
       }
 
-      The key is the string to match in a posting account. The value is a tuple of 3 elements: pattern to
-      replace, replacement for gains, and replacement for losses.
+      <key> : [<substring_to_replace>, <replacement_for_gains>, <replacement_for_losses>]
 
-    Returns:
-      A tuple of entries and errors. """
+      where <key> is a regexp to match in a posting account.
+      """
 
     start_time = time.time()
     rewrite_count = 0
     new_accounts = []
     errors = []
-
-    rewrites = literal_eval(config)  # TODO: error check
+    rewrites = literal_eval(config)
 
     for entry in entries:
         if isinstance(entry, data.Transaction):
