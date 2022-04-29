@@ -6,6 +6,7 @@ import time
 from beancount.core import data
 from ast import literal_eval
 from beancount_reds_plugins.common import common
+from beancount.parser import printer
 
 DEBUG = 0
 __plugins__ = ('gain_loss',)
@@ -39,14 +40,15 @@ def gain_loss(entries, options_map, config):
     new_accounts = []
     errors = []
     rewrites = literal_eval(config)
+    account_matches = [(r, re.compile(r)) for r in rewrites]
 
     for entry in entries:
         if isinstance(entry, data.Transaction):
             postings = list(entry.postings)
             for posting in postings:
                 account = posting.account
-                if any(re.match(r, account) for r in rewrites):
-                    for r in rewrites:
+                for r, pat in account_matches:
+                    if pat.match(account):
                         if posting.units.number < 0:
                             account = account.replace(rewrites[r][0], rewrites[r][1])  # gains
                         else:
@@ -54,7 +56,7 @@ def gain_loss(entries, options_map, config):
                         rewrite_count += 1
                         if account not in new_accounts:
                             new_accounts.append(account)
-                    account_replace(entry, posting, account)
+                        account_replace(entry, posting, account)
 
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc="gains_losses")
     if DEBUG:

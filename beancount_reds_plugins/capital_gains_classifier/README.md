@@ -62,8 +62,12 @@ As a reference point for performance, the plugin takes 0.02sec to run to modify 
    
 #### Finer points:
 - transactions that will be modified:
-  - only modifies transactions that contain at least one posting with an account string
-    that contains the value specified by `generic_account_pat`
+  - transactions that contain at least one posting with an account string that contains
+    the value specified by `generic_account_pat`, *and* have at least one lot reduction
+    posting
+    - the lot reduction posting must specify a negative number of units. This means this
+      plugin does not work for short positions, where a lot reduction posting contains a
+      [positive number](https://beancount.github.io/docs/how_inventories_work.html#homogeneous-and-mixed-inventories) of units
   - exception: transactions containing any posting with an account string that contains
     what is specified by `short_account_rep` or `long_account_rep` will be left
     untouched

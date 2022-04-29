@@ -27,7 +27,7 @@ from ast import literal_eval
 from dateutil import relativedelta
 from beancount_reds_plugins.common import common
 
-DEBUG = 1
+DEBUG = 0
 __plugins__ = ('long_short',)
 
 
