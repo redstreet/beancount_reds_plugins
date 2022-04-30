@@ -86,7 +86,7 @@ def long_short(entries, options_map, config):
             diff = orig_sum - (short_gains + long_gains)
             # divide this diff among short/long. TODO: warn if this is over tolerance threshold, because it
             # means that the transaction is probably not accounted for correctly
-            if diff:
+            if abs(diff) >= entry.meta['__tolerances__'][p.units.currency]:
                 total = short_gains + long_gains
                 short_gains += (short_gains/total) * diff
                 long_gains += (long_gains/total) * diff
