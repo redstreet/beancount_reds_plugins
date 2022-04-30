@@ -1,8 +1,8 @@
 # beancount-reds-plugins
 
 A collection of plugins for [Beancount](https://beancount.github.io/), software for
-[plain text](https://plaintextaccounting.org/), double entry bookkeeping.
-See README.md in individual directories for plugin descriptions.
+[plain text, double entry bookkeeping](https://plaintextaccounting.org/).
+See README.md in individual directories for plugin specific documentation.
 
 ## Plugin list:
 - __[capital_gains_classifier](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/capital_gains_classifier#readme)__:
