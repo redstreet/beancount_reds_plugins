@@ -68,7 +68,11 @@ The plugin config format is:
 ```
 <match_regexp> : [<substring_to_replace>, <replacement_for_short-term>, <replacement_for_long-term>]
 ```
-  where `<match_regexp>` is a regexp to match in a posting account.
+where `<match_regexp>` is a regexp to match in a posting account. Here is an example:
+
+```
+'Income.*:Taxable:Capital-Gains:': [':Capital-Gains', ':Capital-Gains:Short', ':Capital-Gains:Long']
+```
    
 #### Notes:
 
@@ -88,7 +92,9 @@ The plugin config format is:
   - all postings matching account pattern specified by `<match_regexp>` will be
     removed from matching transactions
   - the sum of the postings inserted will be equal to the sum of existing postings that
-    fit the account pattern specified by `<match_regexp>`
+    fit the account pattern specified by `<match_regexp>`. Note that if the
+    `price - cost` turns out to be different from the `Income` postings specified in
+    `<match_regexp>`, the new postings will be scaled to match the latter
 
 - definition of long vs short:
   - implements [IRS' definition](https://www.irs.gov/publications/p550#en_US_publink100010540)
