@@ -185,7 +185,7 @@ def account_replace(txn, posting, new_account):
     txn.postings.append(new_posting)
 
 
-def zerosum(entries, options_map, config):
+def zerosum(entries, options_map, config):  # noqa: C901
     """Insert entries for unmatched transactions in zero-sum accounts.
 
     Args:

@@ -7,7 +7,7 @@ import re
 from beancount_reds_plugins.capital_gains_classifier.gain_loss import gain_loss
 from beancount.core import data
 from beancount.parser import options
-from beancount.parser import printer
+# from beancount.parser import printer
 from beancount import loader
 from decimal import Decimal
 

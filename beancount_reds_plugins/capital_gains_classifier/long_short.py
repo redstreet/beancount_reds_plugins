@@ -31,7 +31,7 @@ DEBUG = 0
 __plugins__ = ('long_short',)
 
 
-def long_short(entries, options_map, config):
+def long_short(entries, options_map, config):  # noqa: C901
     """Replace :Capital-Gains: in transactions with :Capital-Gains:Short: and/or :Capital-Gains:Long:
     """
 
@@ -92,6 +92,7 @@ def long_short(entries, options_map, config):
                 long_gains += (long_gains/total) * diff
 
             orig_p = orig_gains_postings[0]
+
             def add_posting(gains, account_repl):
                 new_units = orig_p.units._replace(number=gains)
                 new_account = orig_p.account.replace(account_to_replace, account_repl)

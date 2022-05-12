@@ -6,7 +6,7 @@ import time
 from beancount.core import data
 from ast import literal_eval
 from beancount_reds_plugins.common import common
-from beancount.parser import printer
+# from beancount.parser import printer
 
 DEBUG = 0
 __plugins__ = ('gain_loss',)
