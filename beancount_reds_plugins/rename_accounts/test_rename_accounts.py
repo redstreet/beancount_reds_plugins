@@ -76,3 +76,81 @@ class TestUnrealized(unittest.TestCase):
         renamed = get_entries_with_acc_regexp(new_entries, ':Taxes')
         self.assertEqual(1, len(renamed))
         self.assertEqual('Income:Taxes', renamed[0].postings[1].account)
+
+    def test_all_directives(self):
+        entries, _, _ = loader.load_string("""
+            2014-01-01 open Assets:Account1
+            2014-01-01 open Assets:Account2
+            2014-01-01 open Equity:Opening-Balances
+
+            2014-01-01 commodity AAPL
+              price: "USD:yahoo/AAPL"
+
+            2014-01-14 pad Assets:Account1 Equity:Opening-Balances
+
+            2014-01-15 balance Assets:Account1 1000 USD
+
+            2014-01-16 * "Buy AAPL"
+              Assets:Account1        -1000 USD
+              Assets:Account2         1 AAPL {1000 USD}
+
+            2014-01-16 price AAPL 1000 USD
+
+            2014-01-17 * "Sell AAPL"
+              Assets:Account2        -1 AAPL {}
+              Assets:Account1          1000 USD
+
+            2014-01-18 note Assets:Account1 "Test note"
+
+            2014-12-31 close Assets:Account1
+
+            2014-12-31 event "location" "Paris, France"
+
+            2014-12-31 query "france-balances" "
+              SELECT account, sum(position) WHERE ‘trip-france-2014’ in tags"
+
+            2014-12-31 custom "budget" "..." TRUE 45.30 USD
+        """, dedent=True)
+
+        expected, _, _ = loader.load_string("""
+            2014-01-01 open Assets:Cash
+            2014-01-01 open Assets:AAPL
+            2014-01-01 open Equity:OpeningBalances
+
+            2014-01-01 commodity AAPL
+              price: "USD:yahoo/AAPL"
+
+            2014-01-14 pad Assets:Cash Equity:OpeningBalances
+
+            2014-01-15 balance Assets:Cash 1000 USD
+
+            2014-01-16 * "Buy AAPL"
+              Assets:Cash        -1000 USD
+              Assets:AAPL         1 AAPL {1000 USD}
+
+            2014-01-16 price AAPL 1000 USD
+
+            2014-01-17 * "Sell AAPL"
+              Assets:AAPL        -1 AAPL {}
+              Assets:Cash          1000 USD
+
+            2014-01-18 note Assets:Cash "Test note"
+
+            2014-12-31 close Assets:Cash
+
+            2014-12-31 event "location" "Paris, France"
+
+            2014-12-31 query "france-balances" "
+              SELECT account, sum(position) WHERE ‘trip-france-2014’ in tags"
+
+            2014-12-31 custom "budget" "..." TRUE 45.30 USD
+        """, dedent=True)
+
+        config = """{
+            'Assets:Account1': 'Assets:Cash',
+            'Assets:Account2': 'Assets:AAPL',
+            'Equity:Opening-Balances': 'Equity:OpeningBalances',
+        }"""
+        actual, _ = rename_accounts.rename_accounts(entries, {}, config)
+
+        self.assertEqual(actual, expected)

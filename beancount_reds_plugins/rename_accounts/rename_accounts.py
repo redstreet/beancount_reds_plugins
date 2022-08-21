@@ -9,15 +9,6 @@ DEBUG = 0
 __plugins__ = ('rename_accounts',)
 
 
-def account_replace(txn, posting, new_account):
-    """Replace the account on a given posting with a new account"""
-    # create a new posting with the new account, then remove old and add new
-    # from parent transaction
-    new_posting = posting._replace(account=new_account)
-    txn.postings.remove(posting)
-    txn.postings.append(new_posting)
-
-
 def rename_accounts(entries, options_map, config):
     """Insert entries for unmatched transactions in zero-sum accounts.
 
@@ -35,25 +26,37 @@ def rename_accounts(entries, options_map, config):
     start_time = time.time()
     rename_count = 0
     new_accounts = []
+    new_entries = []
     errors = []
 
     renames = literal_eval(config)
 
+    def rename_account(account):
+        """Apply 'renames' to 'account' and return the resulting account name."""
+        nonlocal rename_count
+        for r in renames:
+            if r in account:
+                account = account.replace(r, renames[r])
+                rename_count += 1
+        return account
+
     for entry in entries:
         if isinstance(entry, data.Transaction):
-            postings = list(entry.postings)
-            for posting in postings:
-                account = posting.account
-                for r in renames:
-                    if r in account:
-                        account = account.replace(r, renames[r])
-                        rename_count += 1
-                        if account not in new_accounts:
-                            new_accounts.append(account)
-                        account_replace(entry, posting, account)
+            new_postings = []
+            for posting in entry.postings:
+                new_postings.append(posting._replace(account=rename_account(posting.account)))
+            new_entry = entry._replace(postings=new_postings)
+        elif isinstance(entry, data.Pad):
+            new_entry = entry._replace(account=rename_account(entry.account),
+                                       source_account=rename_account(entry.source_account))
+        elif hasattr(entry, 'account'):
+            new_entry = entry._replace(account=rename_account(entry.account))
+        else:
+            new_entry = entry
 
-    new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<rename_accounts>')
+        new_entries.append(new_entry)
+
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Rename accounts [{:.2f}s]: {} postings renamed.".format(elapsed_time, rename_count))
-    return new_open_entries + entries, errors
+    return new_entries, errors
