@@ -69,4 +69,13 @@ Include in your beancount file:
 plugin "beancount_reds_plugins.autoclose_tree.autoclose_tree"
 ```
 
+Include the line above _after_ any plugins that generate `open` directives for accounts
+you want to auto close. For example, the `auto_accounts` plugin that ships with
+Beancount:
+
+```
+plugin "beancount.plugins.auto_accounts"
+plugin "beancount_reds_plugins.autoclose_tree.autoclose_tree"
+```
+
 There is no configuration.
