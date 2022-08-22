@@ -8,15 +8,6 @@ DEBUG = 0
 __plugins__ = ('autoclose_tree',)
 
 
-def account_replace(txn, posting, new_account):
-    """Replace the account on a given posting with a new account"""
-    # create a new posting with the new account, then remove old and add new
-    # from parent transaction
-    new_posting = posting._replace(account=new_account)
-    txn.postings.remove(posting)
-    txn.postings.append(new_posting)
-
-
 def autoclose_tree(entries, options_map, config):
     """Insert close entries for all subaccounts of a closed account.
 
