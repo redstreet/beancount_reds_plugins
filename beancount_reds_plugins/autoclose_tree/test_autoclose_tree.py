@@ -118,6 +118,32 @@ class TestCloseAccountTree(unittest.TestCase):
             return sorted(e, key=lambda x: x.date)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {}, "{}")
+        self.assertEqual(len(actual), len(expected))
+        for a, e in zip(s(actual), s(expected)):
+            self.assertEqual(a.date, e.date)
+            self.assertEqual(a.account, e.account)
+
+    def test_match(self):
+        entries, _, _ = loader.load_string("""
+            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi
+            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi-CustomCash
+            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi:Addon
+            2018-11-10 close Liabilities:Credit-Cards:Wife:Citi
+        """, dedent=True)
+
+        expected, _, _ = loader.load_string("""
+            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi
+            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi-CustomCash
+            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi:Addon
+            2018-11-10 close Liabilities:Credit-Cards:Wife:Citi
+            2018-11-10 close Liabilities:Credit-Cards:Wife:Citi:Addon
+        """, dedent=True)
+
+        def s(e):
+            return sorted(e, key=lambda x: x.date)
+
+        actual, _ = autoclose_tree.autoclose_tree(entries, {}, "{}")
+        self.assertEqual(len(actual), len(expected))
         for a, e in zip(s(actual), s(expected)):
             self.assertEqual(a.date, e.date)
             self.assertEqual(a.account, e.account)

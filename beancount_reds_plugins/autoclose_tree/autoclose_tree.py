@@ -32,7 +32,7 @@ def autoclose_tree(entries, options_map, config):
 
     for entry in entries:
         if isinstance(entry,  Close):
-            subaccounts = [a for a in opens if entry.account in a and a not in closes]
+            subaccounts = [a for a in opens if entry.account + ':' in a and a not in closes]
             for s in subaccounts:
                 meta = data.new_metadata('<beancount_reds_plugins_close_account_tree>', 0)
                 close_entry = data.Close(meta, entry.date, s)
