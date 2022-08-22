@@ -39,8 +39,12 @@ def autoclose_tree(entries, options_map):
                 new_entries.append(close_entry)
                 closes.append(s)
                 close_count += 1
+            if entry.account in opens:
+                new_entries.append(entry)
+        else:
+            new_entries.append(entry)
 
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Close account tree [{:.2f}s]: {} close entries added.".format(elapsed_time, close_count))
-    return entries + new_entries, errors
+    return new_entries, errors

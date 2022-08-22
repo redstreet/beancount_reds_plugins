@@ -7,9 +7,6 @@ example, turns this:
 2014-01-01 open Assets:XBank
 2014-01-01 open Assets:XBank:AAPL
 2014-01-01 open Assets:XBank:AAPL:Fuji
-2014-01-01 open Assets:XBank:AAPL:Gala
-2014-01-01 open Assets:XBank:ORNG
-2014-01-01 open Assets:XBank:BANANA
 2015-01-01 close Assets:XBank
 ```
 
@@ -19,16 +16,28 @@ into:
 2014-01-01 open Assets:XBank
 2014-01-01 open Assets:XBank:AAPL
 2014-01-01 open Assets:XBank:AAPL:Fuji
-2014-01-01 open Assets:XBank:AAPL:Gala
-2014-01-01 open Assets:XBank:ORNG
-2014-01-01 open Assets:XBank:BANANA
 2015-01-01 close Assets:XBank
 2015-01-01 close Assets:XBank:AAPL
 2015-01-01 close Assets:XBank:AAPL:Fuji
-2015-01-01 close Assets:XBank:AAPL:Gala
-2015-01-01 close Assets:XBank:ORNG
-2015-01-01 close Assets:XBank:BANANA
 ```
+
+You can close unopened parents:
+```
+2017-11-10 open Assets:Brokerage:AAPL
+2017-11-10 open Assets:Brokerage:ORNG
+2018-11-10 close Assets:Brokerage  ; this account was never opened, and this would
+                                   ; normally be an invalid directive
+```
+
+becomes:
+
+```
+2017-11-10 open Assets:Brokerage:AAPL
+2017-11-10 open Assets:Brokerage:ORNG
+2018-11-10 close Assets:Brokerage:AAPL
+2018-11-10 close Assets:Brokerage:ORNG
+```
+
 
 Any explicitly specified close is left untouched. For example:
 
