@@ -6,7 +6,7 @@ See README.md in individual directories for plugin specific documentation.
 
 ## Plugin list:
 - __[autoclose_tree](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/autoclose_tree#readme)__:
-  automatically closes all of an account's descendants when an account is closed. For
+  automatically closes all of an account's descendants when an account is closed.
 - __[capital_gains_classifier](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/capital_gains_classifier#readme)__:
   rebooks capital gains into separate long and short accounts, and separate gains and
   losses accounts

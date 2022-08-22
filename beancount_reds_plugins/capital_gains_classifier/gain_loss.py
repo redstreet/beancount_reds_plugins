@@ -62,4 +62,4 @@ def gain_loss(entries, options_map, config):
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Gain/loss gains classifier [{:.2f}s]: {} postings classified.".format(elapsed_time, rewrite_count))
-    return(new_open_entries + entries, errors)
+    return new_open_entries + entries, errors
