@@ -115,7 +115,7 @@ def long_short(entries, options_map, config):  # noqa: C901
         elapsed_time = time.time() - start_time
         print("Long/short gains classifier [{:.2f}s]: {} matched. {} short, {} long postings added.".format(
               elapsed_time, rewrite_count_matches, rewrite_count_short, rewrite_count_long))
-    return(new_open_entries + entries, errors)
+    return new_open_entries + entries, errors
 
 # IRS references:
 #

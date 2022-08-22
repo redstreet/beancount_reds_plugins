@@ -139,7 +139,7 @@ def effective_date(entries, options_map, config):
 
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<effective_date>')
     retval = new_open_entries + new_entries + filtered_entries
-    return(retval, errors)
+    return retval, errors
 
 
 def effective_date_transaction(entries, options_map, config):
@@ -290,7 +290,7 @@ def effective_date_transaction(entries, options_map, config):
 
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<effective_date>')
     retval = new_open_entries + new_entries + filtered_entries
-    return(retval, errors)
+    return retval, errors
 
 # TODO
 # -----------------------------------------------------------------------------------------------------------
