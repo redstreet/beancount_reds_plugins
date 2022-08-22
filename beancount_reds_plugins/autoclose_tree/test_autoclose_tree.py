@@ -1,10 +1,9 @@
 import unittest
-import re
 
 import beancount_reds_plugins.autoclose_tree.autoclose_tree as autoclose_tree
-from beancount.core import data
 from beancount.parser import options
 from beancount import loader
+
 
 def s(e):
     return sorted(e, key=lambda x: (x.date, x.account))
