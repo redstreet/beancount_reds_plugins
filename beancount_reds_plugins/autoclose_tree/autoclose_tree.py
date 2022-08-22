@@ -8,7 +8,7 @@ DEBUG = 0
 __plugins__ = ('autoclose_tree',)
 
 
-def autoclose_tree(entries, options_map, config):
+def autoclose_tree(entries, options_map):
     """Insert close entries for all subaccounts of a closed account.
 
     Args:

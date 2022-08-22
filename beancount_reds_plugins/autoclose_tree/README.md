@@ -57,7 +57,7 @@ becomes:
 ## Setup
 Include in your beancount file:
 ```
-plugin "beancount_reds_plugins.autoclose_tree.autoclose_tree" "{}"
+plugin "beancount_reds_plugins.autoclose_tree.autoclose_tree"
 ```
 
 There is no configuration.

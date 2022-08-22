@@ -34,7 +34,7 @@ def get_entries_with_narration(entries, regexp):
 class TestCloseAccountTree(unittest.TestCase):
 
     def test_empty_entries(self):
-        new_entries, _ = autoclose_tree.autoclose_tree([], options.OPTIONS_DEFAULTS.copy(), "{}")
+        new_entries, _ = autoclose_tree.autoclose_tree([], options.OPTIONS_DEFAULTS.copy())
         self.assertEqual([], new_entries)
 
     def test_basic(self):
@@ -68,7 +68,7 @@ class TestCloseAccountTree(unittest.TestCase):
 
         """, dedent=True)
 
-        actual, _ = autoclose_tree.autoclose_tree(entries, {}, "{}")
+        actual, _ = autoclose_tree.autoclose_tree(entries, {})
         for a, e in zip(actual, expected):
             self.assertEqual(a.date, e.date)
             self.assertEqual(a.account, e.account)
@@ -91,7 +91,7 @@ class TestCloseAccountTree(unittest.TestCase):
             2016-01-01 close Assets:XBank:AAPL
         """, dedent=True)
 
-        actual, _ = autoclose_tree.autoclose_tree(entries, {}, "{}")
+        actual, _ = autoclose_tree.autoclose_tree(entries, {})
         for a, e in zip(actual, expected):
             self.assertEqual(a.date, e.date)
             self.assertEqual(a.account, e.account)
@@ -117,7 +117,7 @@ class TestCloseAccountTree(unittest.TestCase):
         def s(e):
             return sorted(e, key=lambda x: x.date)
 
-        actual, _ = autoclose_tree.autoclose_tree(entries, {}, "{}")
+        actual, _ = autoclose_tree.autoclose_tree(entries, {})
         self.assertEqual(len(actual), len(expected))
         for a, e in zip(s(actual), s(expected)):
             self.assertEqual(a.date, e.date)
@@ -142,7 +142,7 @@ class TestCloseAccountTree(unittest.TestCase):
         def s(e):
             return sorted(e, key=lambda x: x.date)
 
-        actual, _ = autoclose_tree.autoclose_tree(entries, {}, "{}")
+        actual, _ = autoclose_tree.autoclose_tree(entries, {})
         self.assertEqual(len(actual), len(expected))
         for a, e in zip(s(actual), s(expected)):
             self.assertEqual(a.date, e.date)
