@@ -3,7 +3,6 @@
 import time
 from ast import literal_eval
 from beancount.core import data
-from beancount_reds_plugins.common import common
 
 DEBUG = 0
 __plugins__ = ('rename_accounts',)
@@ -25,7 +24,6 @@ def rename_accounts(entries, options_map, config):
 
     start_time = time.time()
     rename_count = 0
-    new_accounts = []
     new_entries = []
     errors = []
 
