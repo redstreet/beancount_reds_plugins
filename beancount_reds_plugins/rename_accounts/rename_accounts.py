@@ -8,7 +8,7 @@ DEBUG = 0
 __plugins__ = ('rename_accounts',)
 
 
-def rename_accounts(entries, options_map, config):
+def rename_accounts(entries, options_map, config):  # noqa: C901
     """Insert entries for unmatched transactions in zero-sum accounts.
 
     Args:
