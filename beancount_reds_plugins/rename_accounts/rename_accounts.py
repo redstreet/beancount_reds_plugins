@@ -38,17 +38,32 @@ def rename_accounts(entries, options_map, config):
                 rename_count += 1
         return account
 
+    def rename_account_in_entry(entry, account_attr='account'):
+        old_account = getattr(entry, account_attr)
+        new_account = rename_account(old_account)
+        if new_account is not old_account:
+            return entry._replace(**{account_attr: new_account})
+        else:
+            return entry
+
     for entry in entries:
         if isinstance(entry, data.Transaction):
             new_postings = []
+            any_posting_changed = False
             for posting in entry.postings:
-                new_postings.append(posting._replace(account=rename_account(posting.account)))
-            new_entry = entry._replace(postings=new_postings)
+                new_posting = rename_account_in_entry(posting)
+                if new_posting is not posting:
+                    any_posting_changed = True
+                new_postings.append(new_posting)
+            if any_posting_changed:
+                new_entry = entry._replace(postings=new_postings)
+            else:
+                new_entry = entry
         elif isinstance(entry, data.Pad):
-            new_entry = entry._replace(account=rename_account(entry.account),
-                                       source_account=rename_account(entry.source_account))
+            new_entry = rename_account_in_entry(entry, 'account')
+            new_entry = rename_account_in_entry(new_entry, 'source_account')
         elif hasattr(entry, 'account'):
-            new_entry = entry._replace(account=rename_account(entry.account))
+            new_entry = rename_account_in_entry(entry)
         else:
             new_entry = entry
 
