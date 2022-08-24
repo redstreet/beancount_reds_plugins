@@ -6,7 +6,7 @@ from beancount import loader
 
 
 def s(e):
-    return sorted(e, key=lambda x: (x.date, x.account))
+    return sorted(e, key=lambda x: (x.date, getattr(x, 'account', 'XXX')))
 
 
 class TestCloseAccountTree(unittest.TestCase):
@@ -156,3 +156,31 @@ class TestCloseAccountTree(unittest.TestCase):
         for a, e in zip(s(actual), s(expected)):
             self.assertEqual(a.date, e.date)
             self.assertEqual(a.account, e.account)
+
+    def test_auto_accounts_parent_close(self):
+        entries, _, _ = loader.load_string("""
+            2021-06-17 close Expenses:Non-Retirement:Auto:Fit
+            plugin "beancount.plugins.auto_accounts"
+
+            2019-01-01 * "Transaction"
+              Expenses:Non-Retirement:Auto:Fit:Insurance   -10 USD
+              Expenses:Non-Retirement:Auto:Fit:Gas
+        """, dedent=True)
+
+        expected, _, _ = loader.load_string("""
+            2019-01-01 open Expenses:Non-Retirement:Auto:Fit:Insurance
+            2019-01-01 open Expenses:Non-Retirement:Auto:Fit:Gas
+
+            2019-01-01 * "Transaction"
+              Expenses:Non-Retirement:Auto:Fit:Insurance   -10 USD
+              Expenses:Non-Retirement:Auto:Fit:Gas
+
+            2021-06-17 close Expenses:Non-Retirement:Auto:Fit:Insurance
+            2021-06-17 close Expenses:Non-Retirement:Auto:Fit:Gas
+        """, dedent=True)
+
+        actual, _ = autoclose_tree.autoclose_tree(entries, {})
+        self.assertEqual(len(actual), len(expected))
+        for a, e in zip(s(actual), s(expected)):
+            self.assertEqual(a.date, e.date)
+            self.assertEqual(getattr(a, 'account', 'XXX'), getattr(e, 'account', 'XXX'))

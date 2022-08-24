@@ -44,7 +44,33 @@ def autoclose_tree(entries, options_map):
         else:
             new_entries.append(entry)
 
+    # beancount.plugins.auto_accounts, if used in conjunction with this plugin, inserts an Open
+    # entry for empty parent accounts which we are trying to close. For example:
+
+    # plugin "beancount.plugins.auto_accounts"
+    # 2021-06-17 close Expenses:Non-Retirement:Auto:Fit
+    # plugin "beancount_reds_plugins.autoclose_tree.autoclose_tree"
+    # 2019-01-01 * "Transaction"
+    #   Expenses:Non-Retirement:Auto:Fit:Insurance      10 USD
+    #   Expenses:Non-Retirement:Auto:Fit:Gas            20 USD
+    #   Assets:Transfer
+
+    # Above, auto_accounts inserts an Open for 'Expenses:Non-Retirement:Auto:Fit:Gas' on 2021-06-17
+    # since it appears in a close directive. But that's not what we want. The semantic of the close
+    # when u used with this plugin is: "close all children, and close the parent if it was opened
+    # earlier. Below, we filter out entries to correctly handle this scenario:
+
+    opens = [(e.account, e.date) for e in entries if isinstance(e, Open)]
+    closes = [(e.account, e.date) for e in entries if isinstance(e, Close)]
+    retval = []
+    for entry in new_entries:
+        if isinstance(entry, Open) and (entry.account, entry.date) in closes:
+            continue
+        if isinstance(entry, Close) and (entry.account, entry.date) in opens:
+            continue
+        retval.append(entry)
+
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Close account tree [{:.2f}s]: {} close entries added.".format(elapsed_time, close_count))
-    return new_entries, errors
+    return retval, errors
