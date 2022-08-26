@@ -154,3 +154,80 @@ class TestUnrealized(unittest.TestCase):
         actual, _ = rename_accounts.rename_accounts(entries, {}, config)
 
         self.assertEqual(actual, expected)
+
+    def test_regex_rename(self):
+        entries, _, _ = loader.load_string("""
+            2014-01-01 open Assets:Checking USD
+            2014-01-01 open Assets:Brokerage:Cash USD
+            2014-01-01 open Assets:Brokerage:VTI VTI
+            2014-01-01 open Assets:Brokerage:BND BND
+            2014-01-01 open Income:Brokerage:Dividends:VTI USD
+            2014-01-01 open Income:Brokerage:Dividends:BND USD
+            2014-01-01 open Expenses:Brokerage:Fees USD
+
+            2014-01-15 * "Bank transfer"
+              Assets:Checking
+              Assets:Brokerage:Cash 1000 USD
+
+            2014-01-15 * "Buy stock"
+              Assets:Brokerage:Cash
+              Assets:Brokerage:VTI 5 VTI {{500 USD}}
+
+            2014-01-15 * "Buy stock"
+              Assets:Brokerage:Cash
+              Assets:Brokerage:BND 10 BND {{500 USD}}
+
+            2014-01-16 * "Dividend"
+              Income:Brokerage:Dividends:VTI
+              Assets:Brokerage:Cash 5 USD
+
+            2014-01-16 * "Dividend"
+              Income:Brokerage:Dividends:BND
+              Assets:Brokerage:Cash 25 USD
+
+            2014-01-17 * "Fees"
+              Assets:Brokerage
+              Expenses:Brokerage:Fees 10 USD
+        """, dedent=True)
+
+        expected, _, _ = loader.load_string("""
+            2014-01-01 open Assets:Checking USD
+            2014-01-01 open Assets:Brokerage:Cash USD
+            2014-01-01 open Assets:Brokerage:VTI VTI
+            2014-01-01 open Assets:Brokerage:BND BND
+            2014-01-01 open Assets:Brokerage:Dividends:VTI USD
+            2014-01-01 open Assets:Brokerage:Dividends:BND USD
+            2014-01-01 open Assets:Brokerage:Fees USD
+
+            2014-01-15 * "Bank transfer"
+              Assets:Checking
+              Assets:Brokerage:Cash 1000 USD
+
+            2014-01-15 * "Buy stock"
+              Assets:Brokerage:Cash
+              Assets:Brokerage:VTI 5 VTI {{500 USD}}
+
+            2014-01-15 * "Buy stock"
+              Assets:Brokerage:Cash
+              Assets:Brokerage:BND 10 BND {{500 USD}}
+
+            2014-01-16 * "Dividend"
+              Assets:Brokerage:Dividends:VTI
+              Assets:Brokerage:Cash 5 USD
+
+            2014-01-16 * "Dividend"
+              Assets:Brokerage:Dividends:BND
+              Assets:Brokerage:Cash 25 USD
+
+            2014-01-17 * "Fees"
+              Assets:Brokerage
+              Assets:Brokerage:Fees 10 USD
+        """, dedent=True)
+
+        config = r"""{
+            'Income(:.+)?:Dividends(:.+)?' : 'Assets\\1:Dividends\\2',
+            'Expenses(:.+)?:Fees(:.+)?' : 'Assets\\1:Fees\\2',
+        }"""
+        actual, _ = rename_accounts.rename_accounts(entries, {}, config)
+
+        self.assertEqual(actual, expected)

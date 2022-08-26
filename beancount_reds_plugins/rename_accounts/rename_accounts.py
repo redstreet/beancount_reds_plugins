@@ -1,5 +1,6 @@
 """See accompanying README.md"""
 
+import re
 import time
 from ast import literal_eval
 from beancount.core import data
@@ -27,7 +28,8 @@ def rename_accounts(entries, options_map, config):  # noqa: C901
     new_entries = []
     errors = []
 
-    renames = literal_eval(config)
+    renames = dict([(re.compile(pattern), replacement)
+                    for pattern, replacement in literal_eval(config).items()])
 
     def rename_account(account):
         """Apply 'renames' to 'account'.
@@ -37,9 +39,9 @@ def rename_accounts(entries, options_map, config):  # noqa: C901
         """
         nonlocal rename_count
         was_renamed = False
-        for r in renames:
-            if r in account:
-                account = account.replace(r, renames[r])
+        for pattern, replacement in renames.items():
+            account, num_replacements = pattern.subn(replacement, account)
+            if num_replacements > 0:
                 rename_count += 1
                 was_renamed = True
         return account, was_renamed
