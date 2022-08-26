@@ -55,3 +55,19 @@ example above.
 
 Account opening entries will be added to Beancount automatically if needed (eg: for
 `Income:Taxes:Federal` above).
+
+The strings on the left may be regular expressions, in which case the strings on
+the right may contain backreferences to capturing groups. For example, the
+following configuration will rename accounts like
+`Income:Brokerage:CapitalGains:VTI` to `Assets:Brokerage:CapitalGains:VTI`. This
+prevents dividends, realized capital gains, and fees from affecting the account
+balance of `Assets:Brokerage`, revealing the net inflows into the
+`Assets:Brokerage` account:
+
+```python
+plugin "beancount_reds_plugins.rename_accounts.rename_accounts" "{
+  'Income(:.+)?:Dividends(:.+)?' : 'Assets\\\\1:Dividends\\\\2',
+  'Income(:.+)?:CapitalGains(:.+)?' : 'Assets\\\\1:CapitalGains\\\\2',
+  'Expenses(:.+)?:Fees(:.+)?' : 'Assets\\\\1:Fees\\\\2',
+}"
+```
