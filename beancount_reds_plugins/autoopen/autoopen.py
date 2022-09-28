@@ -7,7 +7,7 @@ from beancount.core.data import Open, Close
 DEBUG = 0
 __plugins__ = ('autoopen',)
 
-def commodity_leaves(acct, ticker):
+def rules_commodity_leaves_strict(acct, ticker):
     """TODO: this is hardcoded currently. Make it configurable."""
     s = acct.split(':')
     root = s[1]
@@ -18,11 +18,26 @@ def commodity_leaves(acct, ticker):
         'dividends'      : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),
         'interest'       : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),
         'cg'             : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),
+    }
+    return accts
+
+def rules_commodity_leaves_cgdists(acct, ticker):
+    """TODO: this is hardcoded currently. Make it configurable."""
+    s = acct.split(':')
+    root = s[1]
+    taxability = s[2]
+    leaf = ':'.join(s[3:])
+    accts = {
         'capgainsd_lt'   : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Long:{leaf}:{ticker}', 'USD', None),
         'capgainsd_st'   : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Short:{leaf}:{ticker}', 'USD', None),
     }
     return accts
 
+def rules_commodity_leaves_fifo(acct, ticker):
+    retval = rules_commodity_leaves_strict(acct, ticker)
+    v = retval['main_account']
+    retval['main_account'] = (v[0], v[1], data.Booking.FIFO)
+    return retval
 
 def autoopen(entries, options_map):
     """Insert open entries based on rules.
@@ -41,12 +56,15 @@ def autoopen(entries, options_map):
     opens = [e for e in entries if isinstance(e, Open)]
 
     for entry in opens:
-        if 'autoopen_commodity_leaves' in entry.meta:
-            # Insert open entries
-            for leaf in entry.meta['commodity_leaves'].split(","):
-                for acc_params in commodity_leaves(entry.account, leaf).values():
-                    meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
-                    new_entries.append(data.Open(meta, entry.date, *acc_params))
+        for m in entry.meta:
+            if 'autoopen_' in m:
+                ruleset = m[9:]
+                # Insert open entries
+                for leaf in entry.meta[m].split(","):
+                    rulesfn = globals()['rules_' + ruleset]
+                    for acc_params in rulesfn(entry.account, leaf).values():
+                        meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
+                        new_entries.append(data.Open(meta, entry.date, *acc_params))
 
     retval = entries + new_entries
 

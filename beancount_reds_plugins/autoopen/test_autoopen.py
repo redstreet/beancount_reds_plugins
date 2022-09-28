@@ -17,7 +17,7 @@ class TestAutoOpen(unittest.TestCase):
     def test_basic(self):
         entries, _, _ = loader.load_string("""
             2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
-              commodity_leaves: "ABC,DEFGH"
+              autoopen_commodity_leaves_strict: "ABC,DEFGH"
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
@@ -25,18 +25,39 @@ class TestAutoOpen(unittest.TestCase):
 
             2000-01-01 open Assets:Investments:Taxable:Midelity:ABC                 "STRICT"
             2000-01-01 open Income:Investments:Taxable:Capital-Gains:Midelity:ABC   USD
-            2000-01-01 open Income:Investments:Taxable:Capital-Gains-Distributions:Long:Midelity:ABC   USD
-            2000-01-01 open Income:Investments:Taxable:Capital-Gains-Distributions:Short:Midelity:ABC   USD
             2000-01-01 open Income:Investments:Taxable:Dividends:Midelity:ABC       USD
+            2000-01-01 open Income:Investments:Taxable:Interest:Midelity:ABC       USD
 
             2000-01-01 open Assets:Investments:Taxable:Midelity:DEFGH                 "STRICT"
             2000-01-01 open Income:Investments:Taxable:Capital-Gains:Midelity:DEFGH   USD
-            2000-01-01 open Income:Investments:Taxable:Capital-Gains-Distributions:Long:Midelity:DEFGH   USD
-            2000-01-01 open Income:Investments:Taxable:Capital-Gains-Distributions:Short:Midelity:DEFGH   USD
             2000-01-01 open Income:Investments:Taxable:Dividends:Midelity:DEFGH       USD
+            2000-01-01 open Income:Investments:Taxable:Interest:Midelity:DEFGH       USD
         """, dedent=True)
 
         actual, _ = autoopen.autoopen(entries, {})
+        self.assertEqual(len(actual), len(expected))
         for a, e in zip(s(actual), s(expected)):
             self.assertEqual(a.date, e.date)
             self.assertEqual(a.account, e.account)
+
+    def test_rule_fifo(self):
+        entries, _, _ = loader.load_string("""
+            2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
+              autoopen_commodity_leaves_fifo: "ABC"
+        """, dedent=True)
+
+        expected, _, _ = loader.load_string("""
+            2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
+
+            2000-01-01 open Assets:Investments:Taxable:Midelity:ABC                 "FIFO"
+            2000-01-01 open Income:Investments:Taxable:Capital-Gains:Midelity:ABC   USD
+            2000-01-01 open Income:Investments:Taxable:Dividends:Midelity:ABC       USD
+            2000-01-01 open Income:Investments:Taxable:Interest:Midelity:ABC       USD
+        """, dedent=True)
+
+        actual, _ = autoopen.autoopen(entries, {})
+        self.assertEqual(len(actual), len(expected))
+        for a, e in zip(s(actual), s(expected)):
+            self.assertEqual(a.date, e.date)
+            self.assertEqual(a.account, e.account)
+

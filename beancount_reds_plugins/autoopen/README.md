@@ -4,7 +4,7 @@ Automatically opens a set of accounts based on rules. For example, turns:
 
 ```
 2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
-  autoopen_commodity_leaves: "ABC,DEFGH"
+  autoopen_commodity_leaves_strict: "ABC,DEFGH"
 ```
 
 into:
@@ -20,6 +20,8 @@ into:
 2000-01-01 open Income:Investments:Taxable:Capital-Gains-Distributions:Long:Midelity:ABC   USD
 
 ```
+
+The above uses the 'commodity_leaves_strict' ruleset.
 
 TODO:
 - Account set is currently hardcoded. Make it generic, based on specifiable sets of rules
