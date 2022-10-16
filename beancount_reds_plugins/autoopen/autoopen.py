@@ -34,10 +34,23 @@ def rules_commodity_leaves_cgdists(acct, ticker):
     return accts
 
 def rules_commodity_leaves_fifo(acct, ticker):
-    retval = rules_commodity_leaves_strict(acct, ticker)
-    v = retval['main_account']
-    retval['main_account'] = (v[0], v[1], data.Booking.FIFO)
-    return retval
+    # retval = rules_commodity_leaves_strict(acct, ticker)
+    # v = retval['main_account']
+    # retval['main_account'] = (v[0], v[1], data.Booking.FIFO)
+    # return retval
+
+    """TODO: this is hardcoded currently. Make it configurable."""
+    s = acct.split(':')
+    root = s[1]
+    taxability = s[2]
+    leaf = ':'.join(s[3:])
+    accts = {
+        'main_account'   : (f'{acct}:{ticker}', ticker, data.Booking.FIFO),
+        'dividends'      : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),
+        'interest'       : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),
+        'cg'             : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),
+    }
+    return accts
 
 def autoopen(entries, options_map):
     """Insert open entries based on rules.
@@ -71,4 +84,5 @@ def autoopen(entries, options_map):
     if DEBUG:
         elapsed_time = time.time() - start_time
         print("Close account tree [{:.2f}s]: {} close entries added.".format(elapsed_time, close_count))
+
     return retval, errors

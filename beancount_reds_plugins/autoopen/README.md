@@ -1,4 +1,4 @@
-## autoopen plugin for Beancount: EXPERIMENTAL / UNDER DEVELOPMENT
+## EXPERIMENTAL autoopen plugin for Beancount: (UNDER EARLY DEVELOPMENT)
 
 Automatically opens a set of accounts based on rules. For example, turns:
 
@@ -24,6 +24,6 @@ into:
 The above uses the 'commodity_leaves_strict' ruleset.
 
 TODO:
-- Account set is currently hardcoded. Make it generic, based on specifiable sets of rules
+- Rulesets are currently hardcoded. Make it generic, based on specifiable sets of rules
   - eg: "autoopen_commodity_leaves" would be a rule that opens a specific set of accounts
   - easier expressed as python code than some string rules
