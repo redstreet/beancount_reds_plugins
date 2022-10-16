@@ -2,10 +2,11 @@
 
 import time
 from beancount.core import data
-from beancount.core.data import Open, Close
+from beancount.core.data import Open
 
 DEBUG = 0
 __plugins__ = ('autoopen',)
+
 
 def rules_commodity_leaves_strict(acct, ticker):
     """TODO: this is hardcoded currently. Make it configurable."""
@@ -14,12 +15,13 @@ def rules_commodity_leaves_strict(acct, ticker):
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'main_account'   : (f'{acct}:{ticker}', ticker, data.Booking.STRICT),
-        'dividends'      : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),
-        'interest'       : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),
-        'cg'             : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),
+        'main_account' : (f'{acct}:{ticker}', ticker, data.Booking.STRICT),                           # noqa: E203
+        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),      # noqa: E203
+        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),       # noqa: E203
+        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),  # noqa: E203
     }
     return accts
+
 
 def rules_commodity_leaves_cgdists(acct, ticker):
     """TODO: this is hardcoded currently. Make it configurable."""
@@ -28,10 +30,11 @@ def rules_commodity_leaves_cgdists(acct, ticker):
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'capgainsd_lt'   : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Long:{leaf}:{ticker}', 'USD', None),
-        'capgainsd_st'   : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Short:{leaf}:{ticker}', 'USD', None),
+        'capgainsd_lt' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Long:{leaf}:{ticker}', 'USD', None),   # noqa
+        'capgainsd_st' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Short:{leaf}:{ticker}', 'USD', None),  # noqa
     }
     return accts
+
 
 def rules_commodity_leaves_fifo(acct, ticker):
     # retval = rules_commodity_leaves_strict(acct, ticker)
@@ -45,12 +48,13 @@ def rules_commodity_leaves_fifo(acct, ticker):
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'main_account'   : (f'{acct}:{ticker}', ticker, data.Booking.FIFO),
-        'dividends'      : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),
-        'interest'       : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),
-        'cg'             : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),
+        'main_account' : (f'{acct}:{ticker}', ticker, data.Booking.FIFO),                             # noqa: E203
+        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),      # noqa: E203
+        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),       # noqa: E203
+        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),  # noqa: E203
     }
     return accts
+
 
 def autoopen(entries, options_map):
     """Insert open entries based on rules.

@@ -60,4 +60,3 @@ class TestAutoOpen(unittest.TestCase):
         for a, e in zip(s(actual), s(expected)):
             self.assertEqual(a.date, e.date)
             self.assertEqual(a.account, e.account)
-
