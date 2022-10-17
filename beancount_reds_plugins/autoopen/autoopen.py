@@ -8,6 +8,19 @@ DEBUG = 0
 __plugins__ = ('autoopen',)
 
 
+def rules_cash_and_fees(acct, currency):
+    """TODO: this is hardcoded currently. Make it configurable."""
+    s = acct.split(':')
+    # root = s[1]
+    taxability = s[2]
+    leaf = ':'.join(s[3:])
+    accts = {
+            'cash'    : (f'{acct}:{currency}', currency, None),      # noqa: E203
+            'fees'    : (f'Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{leaf}', currency, None),  # noqa: E203
+        }
+    return accts
+
+
 def rules_commodity_leaves_strict(acct, ticker):
     """TODO: this is hardcoded currently. Make it configurable."""
     s = acct.split(':')
