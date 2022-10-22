@@ -3,7 +3,7 @@
 import time
 from beancount.core import data
 from beancount.core.data import Open
-from beancount.parser import printer
+# from beancount.parser import printer
 
 DEBUG = 0
 __plugins__ = ('autoopen',)
@@ -22,18 +22,27 @@ def rules_cash_and_fees(acct, currency, op_currency):
     return accts
 
 
-def rules_commodity_leaves_strict(acct, ticker, op_currency):
+def rules_commodity_leaves_default_booking(acct, ticker, op_currency):
+    """TODO: this is hardcoded currently. Make it configurable."""
+
+    return rules_commodity_leaves(acct, ticker, op_currency, include_asset_acct=True)
+
+
+def rules_commodity_leaves(acct, ticker, op_currency, include_asset_acct=False):
     """TODO: this is hardcoded currently. Make it configurable."""
     s = acct.split(':')
     root = s[1]
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'main_account' : (f'{acct}:{ticker}', [ticker], data.Booking.STRICT),                           # noqa: E203
         'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', [op_currency], None),      # noqa: E203
         'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}',  [op_currency], None),      # noqa: E203
         'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', [op_currency], None),  # noqa: E203
     }
+    # bookings cannot be specified via this plugin because bookings run before plugins
+    if include_asset_acct:
+        accts['main_account'] = (f'{acct}:{ticker}', [ticker], None)
+
     return accts
 
 
@@ -46,26 +55,6 @@ def rules_commodity_leaves_cgdists(acct, ticker, op_currency):
     accts = {
         'capgainsd_lt' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Long:{leaf}:{ticker}', [op_currency], None),   # noqa
         'capgainsd_st' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Short:{leaf}:{ticker}', [op_currency], None),  # noqa
-    }
-    return accts
-
-
-def rules_commodity_leaves_fifo(acct, ticker, op_currency):
-    # retval = rules_commodity_leaves_strict(acct, ticker)
-    # v = retval['main_account']
-    # retval['main_account'] = (v[0], v[1], data.Booking.FIFO)
-    # return retval
-
-    """TODO: this is hardcoded currently. Make it configurable."""
-    s = acct.split(':')
-    root = s[1]
-    taxability = s[2]
-    leaf = ':'.join(s[3:])
-    accts = {
-        'main_account' : (f'{acct}:{ticker}', [ticker], data.Booking.FIFO),                           # noqa: E203
-        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', [op_currency], None),      # noqa: E203
-        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', [op_currency], None),       # noqa: E203
-        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', [op_currency], None),  # noqa: E203
     }
     return accts
 
@@ -98,7 +87,7 @@ def autoopen(entries, options_map):
                     for acc_params in rulesfn(entry.account, leaf, op_currency).values():
                         meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
                         new_entries.append(data.Open(meta, entry.date, *acc_params))
-                        printer.print_entry(data.Open(meta, entry.date, *acc_params))
+                        # printer.print_entry(data.Open(meta, entry.date, *acc_params))
 
     retval = entries + new_entries
 
