@@ -17,7 +17,7 @@ class TestAutoOpen(unittest.TestCase):
     def test_basic(self):
         entries, _, _ = loader.load_string("""
             2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
-              autoopen_commodity_leaves_strict: "ABC,DEFGH"
+              autoopen_commodity_leaves_default_booking: "ABC,DEFGH"
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
@@ -43,13 +43,12 @@ class TestAutoOpen(unittest.TestCase):
     def test_rule_fifo(self):
         entries, _, _ = loader.load_string("""
             2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
-              autoopen_commodity_leaves_fifo: "ABC"
+              autoopen_commodity_leaves: "ABC"
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
             2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
 
-            2000-01-01 open Assets:Investments:Taxable:Midelity:ABC                 "FIFO"
             2000-01-01 open Income:Investments:Taxable:Capital-Gains:Midelity:ABC   USD
             2000-01-01 open Income:Investments:Taxable:Dividends:Midelity:ABC       USD
             2000-01-01 open Income:Investments:Taxable:Interest:Midelity:ABC       USD

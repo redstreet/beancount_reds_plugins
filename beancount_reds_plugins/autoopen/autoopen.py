@@ -75,7 +75,11 @@ def autoopen(entries, options_map):
 
     opens = [e for e in entries if isinstance(e, Open)]
     # TODO: need to make this specifiable by the metadata param
-    op_currency = options_map.get('operating_currency', ['USD'])[0]
+    op_currency = options_map.get('operating_currency', [])
+    if isinstance(op_currency, list) and len(op_currency):
+        op_currency = op_currency[0]
+    else:
+        op_currency = 'USD'
 
     for entry in opens:
         for m in entry.meta:
