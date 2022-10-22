@@ -3,6 +3,7 @@
 import time
 from beancount.core import data
 from beancount.core.data import Open
+from beancount.parser import printer
 
 DEBUG = 0
 __plugins__ = ('autoopen',)
@@ -15,8 +16,8 @@ def rules_cash_and_fees(acct, currency, op_currency):
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-            'cash'    : (f'{acct}:{currency}', currency, None),      # noqa: E203
-            'fees'    : (f'Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{leaf}', currency, None),  # noqa: E203
+            'cash'    : (f'{acct}:{currency}', [currency], None),      # noqa: E203
+            'fees'    : (f'Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{leaf}', [currency], None),  # noqa: E203
         }
     return accts
 
@@ -28,7 +29,7 @@ def rules_commodity_leaves_strict(acct, ticker, op_currency):
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'main_account' : (f'{acct}:{ticker}', ticker, data.Booking.STRICT),                           # noqa: E203
+        'main_account' : (f'{acct}:{ticker}', [ticker], data.Booking.STRICT),                           # noqa: E203
         'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', [op_currency], None),      # noqa: E203
         'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}',  [op_currency], None),      # noqa: E203
         'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', [op_currency], None),  # noqa: E203
@@ -61,7 +62,7 @@ def rules_commodity_leaves_fifo(acct, ticker, op_currency):
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'main_account' : (f'{acct}:{ticker}', [ticker], data.Booking.NONE),                           # noqa: E203
+        'main_account' : (f'{acct}:{ticker}', [ticker], data.Booking.FIFO),                           # noqa: E203
         'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', [op_currency], None),      # noqa: E203
         'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', [op_currency], None),       # noqa: E203
         'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', [op_currency], None),  # noqa: E203
@@ -97,6 +98,7 @@ def autoopen(entries, options_map):
                     for acc_params in rulesfn(entry.account, leaf, op_currency).values():
                         meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
                         new_entries.append(data.Open(meta, entry.date, *acc_params))
+                        printer.print_entry(data.Open(meta, entry.date, *acc_params))
 
     retval = entries + new_entries
 
