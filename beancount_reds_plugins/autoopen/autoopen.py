@@ -8,7 +8,7 @@ DEBUG = 0
 __plugins__ = ('autoopen',)
 
 
-def rules_cash_and_fees(acct, currency):
+def rules_cash_and_fees(acct, currency, op_currency):
     """TODO: this is hardcoded currently. Make it configurable."""
     s = acct.split(':')
     # root = s[1]
@@ -21,7 +21,7 @@ def rules_cash_and_fees(acct, currency):
     return accts
 
 
-def rules_commodity_leaves_strict(acct, ticker):
+def rules_commodity_leaves_strict(acct, ticker, op_currency):
     """TODO: this is hardcoded currently. Make it configurable."""
     s = acct.split(':')
     root = s[1]
@@ -29,27 +29,27 @@ def rules_commodity_leaves_strict(acct, ticker):
     leaf = ':'.join(s[3:])
     accts = {
         'main_account' : (f'{acct}:{ticker}', ticker, data.Booking.STRICT),                           # noqa: E203
-        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),      # noqa: E203
-        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),       # noqa: E203
-        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),  # noqa: E203
+        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', [op_currency], None),      # noqa: E203
+        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}',  [op_currency], None),      # noqa: E203
+        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', [op_currency], None),  # noqa: E203
     }
     return accts
 
 
-def rules_commodity_leaves_cgdists(acct, ticker):
+def rules_commodity_leaves_cgdists(acct, ticker, op_currency):
     """TODO: this is hardcoded currently. Make it configurable."""
     s = acct.split(':')
     root = s[1]
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'capgainsd_lt' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Long:{leaf}:{ticker}', 'USD', None),   # noqa
-        'capgainsd_st' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Short:{leaf}:{ticker}', 'USD', None),  # noqa
+        'capgainsd_lt' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Long:{leaf}:{ticker}', [op_currency], None),   # noqa
+        'capgainsd_st' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Short:{leaf}:{ticker}', [op_currency], None),  # noqa
     }
     return accts
 
 
-def rules_commodity_leaves_fifo(acct, ticker):
+def rules_commodity_leaves_fifo(acct, ticker, op_currency):
     # retval = rules_commodity_leaves_strict(acct, ticker)
     # v = retval['main_account']
     # retval['main_account'] = (v[0], v[1], data.Booking.FIFO)
@@ -61,10 +61,10 @@ def rules_commodity_leaves_fifo(acct, ticker):
     taxability = s[2]
     leaf = ':'.join(s[3:])
     accts = {
-        'main_account' : (f'{acct}:{ticker}', ticker, data.Booking.FIFO),                             # noqa: E203
-        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', 'USD', None),      # noqa: E203
-        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', 'USD', None),       # noqa: E203
-        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', 'USD', None),  # noqa: E203
+        'main_account' : (f'{acct}:{ticker}', [ticker], data.Booking.NONE),                           # noqa: E203
+        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', [op_currency], None),      # noqa: E203
+        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}', [op_currency], None),       # noqa: E203
+        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', [op_currency], None),  # noqa: E203
     }
     return accts
 
@@ -84,6 +84,8 @@ def autoopen(entries, options_map):
     errors = []
 
     opens = [e for e in entries if isinstance(e, Open)]
+    # TODO: need to make this specifiable by the metadata param
+    op_currency = options_map.get('operating_currency', ['USD'])[0]
 
     for entry in opens:
         for m in entry.meta:
@@ -92,7 +94,7 @@ def autoopen(entries, options_map):
                 # Insert open entries
                 for leaf in entry.meta[m].split(","):
                     rulesfn = globals()['rules_' + ruleset]
-                    for acc_params in rulesfn(entry.account, leaf).values():
+                    for acc_params in rulesfn(entry.account, leaf, op_currency).values():
                         meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
                         new_entries.append(data.Open(meta, entry.date, *acc_params))
 
