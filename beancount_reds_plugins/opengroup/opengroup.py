@@ -1,6 +1,9 @@
-"""Opens a set of accounts based on rules. See accompanying README.md"""
+""" Opens a set of accounts based on rules. See accompanying README.md """
 
+# flake8: noqa
+import re
 import time
+from ast import literal_eval
 from beancount.core import data
 from beancount.core.data import Open
 # from beancount.parser import printer
@@ -9,63 +12,57 @@ DEBUG = 0
 __plugins__ = ('opengroup',)
 
 
-def rules_cash_and_fees(acct, currency, op_currency):
-    """Opens cash and fees accounts"""
-    s = acct.split(':')
-    # root = s[1]
-    taxability = s[2]
-    leaf = ':'.join(s[3:])
-    accts = {
-            'cash'    : (f'{acct}:{currency}', [currency], None),      # noqa: E203
-            'fees'    : (f'Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{leaf}', [currency], None),  # noqa: E203
-        }
-    return accts
+default_rules = {
+  'cash_and_fees': (  # Open cash and fees accounts
+    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+
+    [('{f_acct}:{f_ticker}', '{f_opcurr}'),
+     ('Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{account_name}', '{f_opcurr}'),
+    ]),
+
+  'commodity_leaves': (  # Open common set of investment accounts with commodity leaves
+    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+
+    [('Income:{subroot}:{taxability}:Dividends:{account_name}:{f_ticker}',     '{f_opcurr}'),
+     ('Income:{subroot}:{taxability}:Interest:{account_name}:{f_ticker}',      '{f_opcurr}'),
+     ('Income:{subroot}:{taxability}:Capital-Gains:{account_name}:{f_ticker}', '{f_opcurr}'),
+    ]),
+
+  'commodity_leaves_default_booking': (  # Open commodity_leaves + asset account for the ticker
+    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+
+    [('{f_acct}:{f_ticker}',                                                   '{f_ticker}'),
+     ('Income:{subroot}:{taxability}:Dividends:{account_name}:{f_ticker}',     '{f_opcurr}'),
+     ('Income:{subroot}:{taxability}:Interest:{account_name}:{f_ticker}',      '{f_opcurr}'),
+     ('Income:{subroot}:{taxability}:Capital-Gains:{account_name}:{f_ticker}', '{f_opcurr}'),
+    ]),
+
+  'commodity_leaves_cgdists':  # Open capital gains distributions accounts
+    ('(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+
+    [('Income:{subroot}:{taxability}:Capital-Gains-Distributions:Long:{account_name}:{f_ticker}',  '{f_opcurr}'),
+     ('Income:{subroot}:{taxability}:Capital-Gains-Distributions:Short:{account_name}:{f_ticker}', '{f_opcurr}'),
+    ]),
+}  # type: ignore
 
 
-def rules_commodity_leaves_default_booking(acct, ticker, op_currency):
-    """Just like rules_commodity_leaves, but also adds an Asset account assuming you want it to
-    have the default booking method specified in your Beancount source"""
+def run_rule(rules, rulename, f_acct, f_ticker, f_opcurr):
+    rule, inserts = rules[rulename]
+    components = re.search(rule, f_acct).groupdict()
+    components.update(locals())
 
-    return rules_commodity_leaves(acct, ticker, op_currency, include_asset_acct=True)
-
-
-def rules_commodity_leaves(acct, ticker, op_currency, include_asset_acct=False):
-    """Open basic investment accounts for each ticker"""
-    s = acct.split(':')
-    root = s[1]
-    taxability = s[2]
-    leaf = ':'.join(s[3:])
-    accts = {
-        'dividends'    : (f'Income:{root}:{taxability}:Dividends:{leaf}:{ticker}', [op_currency], None),      # noqa: E203
-        'interest'     : (f'Income:{root}:{taxability}:Interest:{leaf}:{ticker}',  [op_currency], None),      # noqa: E203
-        'cg'           : (f'Income:{root}:{taxability}:Capital-Gains:{leaf}:{ticker}', [op_currency], None),  # noqa: E203
-    }
-    # bookings cannot be specified via this plugin because bookings run before plugins
-    if include_asset_acct:
-        accts['main_account'] = (f'{acct}:{ticker}', [ticker], None)
-
-    return accts
+    def f(x):
+        return x.format(**components)
+    return [(f(i), f(currency).split(','), None) for i, currency in inserts]
 
 
-def rules_commodity_leaves_cgdists(acct, ticker, op_currency):
-    """Open capital gains distributions accounts"""
-    s = acct.split(':')
-    root = s[1]
-    taxability = s[2]
-    leaf = ':'.join(s[3:])
-    accts = {
-        'capgainsd_lt' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Long:{leaf}:{ticker}', [op_currency], None),   # noqa
-        'capgainsd_st' : (f'Income:{root}:{taxability}:Capital-Gains-Distributions:Short:{leaf}:{ticker}', [op_currency], None),  # noqa
-    }
-    return accts
-
-
-def opengroup(entries, options_map):
+def opengroup(entries, options_map, config):
     """Insert open entries based on rules.
 
     Args:
       entries: a list of entry instances
       options_map: a dict of options parsed from the file (not used)
+      config: rules dictionary in the format of default_rules above
     Returns:
       A tuple of entries and errors. """
 
@@ -82,14 +79,17 @@ def opengroup(entries, options_map):
     else:
         op_currency = 'USD'
 
+    rules = literal_eval(config)
+    if not rules:
+        rules = default_rules
+
     for entry in opens:
         for m in entry.meta:
             if 'opengroup_' in m:
-                ruleset = m[10:]
+                rule = m[10:]
                 # Insert open entries
                 for leaf in entry.meta[m].split(","):
-                    rulesfn = globals()['rules_' + ruleset]
-                    for acc_params in rulesfn(entry.account, leaf, op_currency).values():
+                    for acc_params in run_rule(rules, rule, entry.account, leaf, op_currency):
                         meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
                         new_entries.append(data.Open(meta, entry.date, *acc_params))
                         # printer.print_entry(data.Open(meta, entry.date, *acc_params))
