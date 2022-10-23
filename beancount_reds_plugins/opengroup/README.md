@@ -88,22 +88,22 @@ The config for the example on the top was the default, built-in config, which lo
 ```
 default_rules = {
   'cash_and_fees': (  # Open cash and fees accounts
-    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
+
+    [('{f_acct}:{f_ticker}', '{f_opcurr}'),
+     ('Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{account_name}', '{f_opcurr}'),
+    ]),
 
   'commodity_leaves': (  # Open common set of investment accounts with commodity leaves
-    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('Income:{subroot}:{taxability}:Dividends:{account_name}:{f_ticker}',     '{f_opcurr}'),
      ('Income:{subroot}:{taxability}:Interest:{account_name}:{f_ticker}',      '{f_opcurr}'),
      ('Income:{subroot}:{taxability}:Capital-Gains:{account_name}:{f_ticker}', '{f_opcurr}'),
     ]),
 
-    [('{f_acct}:{f_ticker}', '{f_opcurr}'),
-     ('Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{account_name}', '{f_opcurr}'),
-    ]),
-
   'commodity_leaves_default_booking': (  # Open commodity_leaves + asset account for the ticker
-    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('{f_acct}:{f_ticker}',                                                   '{f_ticker}'),
      ('Income:{subroot}:{taxability}:Dividends:{account_name}:{f_ticker}',     '{f_opcurr}'),
@@ -112,25 +112,30 @@ default_rules = {
     ]),
 
   'commodity_leaves_cgdists':  # Open capital gains distributions accounts
-    ('(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    ('(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('Income:{subroot}:{taxability}:Capital-Gains-Distributions:Long:{account_name}:{f_ticker}',  '{f_opcurr}'),
      ('Income:{subroot}:{taxability}:Capital-Gains-Distributions:Short:{account_name}:{f_ticker}', '{f_opcurr}'),
     ]),
-}  # type: ignore
+}
 ```
 
 
 ## Limitations
 
-Custom booking methods cannot be specified via this plugin since all plugins run after
-booking is done in Beancount. If you use different booking methods for different
-accounts, you can only opengroup your global default via this plugin, specified like so
-in your source:
-   
-```
-option "booking_method" "STRICT"
-```
-   
-For the remaining accounts, use `opengroup_commodity_leaves`, which does not include the
-Asset account above, which you can then open manually.
+- Custom booking methods cannot be specified via this plugin since all plugins run after
+  booking is done in Beancount. If you use different booking methods for different
+  accounts, you can only opengroup your global default via this plugin, specified like so
+  in your source:
+     
+  ```
+  option "booking_method" "STRICT"
+  ```
+     
+  For the remaining accounts, use `opengroup_commodity_leaves`, which does not include the
+  Asset account above, which you can then open manually.
+
+- closegroup needs to be tested and documented
+  - works fine with autoclose_tree, since autoclose_tree doesn't touch explicit close
+    statements
+

@@ -5,7 +5,7 @@ import re
 import time
 from ast import literal_eval
 from beancount.core import data
-from beancount.core.data import Open
+from beancount.core.data import Open,Close
 # from beancount.parser import printer
 
 DEBUG = 0
@@ -14,14 +14,14 @@ __plugins__ = ('opengroup',)
 
 default_rules = {
   'cash_and_fees': (  # Open cash and fees accounts
-    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('{f_acct}:{f_ticker}', '{f_opcurr}'),
      ('Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{account_name}', '{f_opcurr}'),
     ]),
 
   'commodity_leaves': (  # Open common set of investment accounts with commodity leaves
-    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('Income:{subroot}:{taxability}:Dividends:{account_name}:{f_ticker}',     '{f_opcurr}'),
      ('Income:{subroot}:{taxability}:Interest:{account_name}:{f_ticker}',      '{f_opcurr}'),
@@ -29,7 +29,7 @@ default_rules = {
     ]),
 
   'commodity_leaves_default_booking': (  # Open commodity_leaves + asset account for the ticker
-    '(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('{f_acct}:{f_ticker}',                                                   '{f_ticker}'),
      ('Income:{subroot}:{taxability}:Dividends:{account_name}:{f_ticker}',     '{f_opcurr}'),
@@ -38,7 +38,7 @@ default_rules = {
     ]),
 
   'commodity_leaves_cgdists':  # Open capital gains distributions accounts
-    ('(?P<root>.*):(?P<subroot>.*):(?P<taxability>.*):(?P<account_name>.*)',
+    ('(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('Income:{subroot}:{taxability}:Capital-Gains-Distributions:Long:{account_name}:{f_ticker}',  '{f_opcurr}'),
      ('Income:{subroot}:{taxability}:Capital-Gains-Distributions:Short:{account_name}:{f_ticker}', '{f_opcurr}'),
@@ -71,7 +71,7 @@ def opengroup(entries, options_map, config):
     new_entries = []
     errors = []
 
-    opens = [e for e in entries if isinstance(e, Open)]
+    opencloses = [e for e in entries if isinstance(e, Open) or isinstance(e, Close)]
     # TODO: need to make this specifiable by the metadata param
     op_currency = options_map.get('operating_currency', [])
     if isinstance(op_currency, list) and len(op_currency):
@@ -83,16 +83,20 @@ def opengroup(entries, options_map, config):
     if not rules:
         rules = default_rules
 
-    for entry in opens:
+    for entry in opencloses:
         for m in entry.meta:
-            if 'opengroup_' in m:
-                rule = m[10:]
+            if m.startswith('opengroup_') or m.startswith('closegroup_'):
+                oc, rule = m.split('_', 1)
                 # Insert open entries
                 for leaf in entry.meta[m].split(","):
                     for acc_params in run_rule(rules, rule, entry.account, leaf, op_currency):
                         meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
-                        new_entries.append(data.Open(meta, entry.date, *acc_params))
-                        # printer.print_entry(data.Open(meta, entry.date, *acc_params))
+                        if oc == 'opengroup':
+                            new_entries.append(data.Open(meta, entry.date, *acc_params))
+                            # printer.print_entry(data.Open(meta, entry.date, *acc_params))
+                        elif oc == 'closegroup':
+                            new_entries.append(data.Close(meta, entry.date, acc_params[0]))
+
 
     retval = entries + new_entries
 

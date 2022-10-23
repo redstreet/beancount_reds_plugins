@@ -7,6 +7,7 @@ from beancount import loader
 
 ruleset = "{}"
 
+
 def s(e):
     return sorted(e, key=lambda x: (x.date, getattr(x, 'account', 'XXX')))
 
