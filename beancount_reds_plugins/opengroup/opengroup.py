@@ -6,11 +6,11 @@ from beancount.core.data import Open
 # from beancount.parser import printer
 
 DEBUG = 0
-__plugins__ = ('autoopen',)
+__plugins__ = ('opengroup',)
 
 
 def rules_cash_and_fees(acct, currency, op_currency):
-    """TODO: this is hardcoded currently. Make it configurable."""
+    """Opens cash and fees accounts"""
     s = acct.split(':')
     # root = s[1]
     taxability = s[2]
@@ -23,13 +23,14 @@ def rules_cash_and_fees(acct, currency, op_currency):
 
 
 def rules_commodity_leaves_default_booking(acct, ticker, op_currency):
-    """TODO: this is hardcoded currently. Make it configurable."""
+    """Just like rules_commodity_leaves, but also adds an Asset account assuming you want it to
+    have the default booking method specified in your Beancount source"""
 
     return rules_commodity_leaves(acct, ticker, op_currency, include_asset_acct=True)
 
 
 def rules_commodity_leaves(acct, ticker, op_currency, include_asset_acct=False):
-    """TODO: this is hardcoded currently. Make it configurable."""
+    """Open basic investment accounts for each ticker"""
     s = acct.split(':')
     root = s[1]
     taxability = s[2]
@@ -47,7 +48,7 @@ def rules_commodity_leaves(acct, ticker, op_currency, include_asset_acct=False):
 
 
 def rules_commodity_leaves_cgdists(acct, ticker, op_currency):
-    """TODO: this is hardcoded currently. Make it configurable."""
+    """Open capital gains distributions accounts"""
     s = acct.split(':')
     root = s[1]
     taxability = s[2]
@@ -59,7 +60,7 @@ def rules_commodity_leaves_cgdists(acct, ticker, op_currency):
     return accts
 
 
-def autoopen(entries, options_map):
+def opengroup(entries, options_map):
     """Insert open entries based on rules.
 
     Args:
@@ -83,8 +84,8 @@ def autoopen(entries, options_map):
 
     for entry in opens:
         for m in entry.meta:
-            if 'autoopen_' in m:
-                ruleset = m[9:]
+            if 'opengroup_' in m:
+                ruleset = m[10:]
                 # Insert open entries
                 for leaf in entry.meta[m].split(","):
                     rulesfn = globals()['rules_' + ruleset]
