@@ -1,11 +1,22 @@
 # Changelog
 
 
-## (unreleased)
+## 0.3.0 (2023-01-24)
+
+
+### New
+- autoclose_tree: new plugin automatically closes all of an account's descendants when
+  an account is closed. [Red S]
+- opengroup (experimental): new plugin to automatically open sets of accounts. [Red S]
 
 ### Improvements
+- rename_accounts: accept regexes for renames (#20) [Ankur Dave]
+- rename_accounts: Support renaming within all directives, not just Transaction (#17) [Ankur Dave]
+- rename_accounts: Copy only renamed directives for performance (#18) [Ankur Dave]
 - long_short: use tolerance to determine whether to scale. [Red S]
 
+### Fixes
+- #19 error when used in conjunction with beancount.plugins.auto_accounts. [Red S]
 
 
 
