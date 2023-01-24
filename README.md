@@ -12,6 +12,8 @@ See README.md in individual directories for plugin specific documentation.
   losses accounts
 - __[effective_date](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/effective_date#readme)__:
   enables per-posting dates (each posting in a transaction can have a different date)
+- __[opengroup](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/opengroup#readme)__:
+  Inserts open statements for sets of accounts based on specifiable rules.
 - __[rename_accounts](https://github.com/redstreet/beancount_reds_plugins/tree/master/beancount_reds_plugins/rename_accounts#readme)__:
   rename arbitrary accounts on the fly (eg: move Taxes from Expenses to Income when you
   temporarily want to view all your Expenses except taxes)

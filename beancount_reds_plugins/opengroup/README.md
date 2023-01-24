@@ -32,7 +32,7 @@ into:
 2000-01-01 open Income:Investments:Taxable:Capital-Gains-Distributions:Long:Midelity:VTI  USD
 ```
 
-## Why use this plugin?
+### Why use this plugin?
 
 If you like the benefit of a layer of error checking that you get by manually opening
 and closing accounts in Beancount, this plugin offers a way to get that benefit while
@@ -44,7 +44,7 @@ based on metadata like the above helps with:
 - ease of adding new funds (no need to remember all the corresponding accounts to open
   and their conventions; simply add the new ticker to the metadata list)
 
-## Plugin Invoking and Configuration
+### Plugin Invoking and Configuration
 
 A default config is built in. To invoke the plugin with the default config, use this in
 your Beancount source:
@@ -81,7 +81,7 @@ All variables above are strings. Special variables are:
 
 See default config below for an example config. 
 
-## Default Config
+### Default Config
 
 The config for the example on the top was the default, built-in config, which looks like:
 
@@ -120,8 +120,7 @@ default_rules = {
 }
 ```
 
-
-## Limitations
+### Limitations
 
 - Custom booking methods cannot be specified via this plugin since all plugins run after
   booking is done in Beancount. If you use different booking methods for different
@@ -135,7 +134,6 @@ default_rules = {
   For the remaining accounts, use `opengroup_commodity_leaves`, which does not include the
   Asset account above, which you can then open manually.
 
-- closegroup needs to be tested and documented
-  - works fine with autoclose_tree, since autoclose_tree doesn't touch explicit close
-    statements
-
+- Closing account sets: (TBD: write a plugin to automatically close account sets).
+  Meanwhile, [autoclose_tree](https://github.com/redstreet/beancount_reds_plugins/tree/main/beancount_reds_plugins/autoclose_tree#readme)
+  can be used in conjunction with this plugin to close a tree of accounts.
