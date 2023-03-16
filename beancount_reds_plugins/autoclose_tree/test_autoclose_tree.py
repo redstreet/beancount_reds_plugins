@@ -117,18 +117,18 @@ class TestCloseAccountTree(unittest.TestCase):
 
     def test_match(self):
         entries, _, _ = loader.load_string("""
-            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi
-            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi-CustomCash
-            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi:Addon
-            2018-11-10 close Liabilities:Credit-Cards:Wife:Citi
+            2017-11-10 open Liabilities:Credit-Cards:Spouse:Citi
+            2017-11-10 open Liabilities:Credit-Cards:Spouse:Citi-CustomCash
+            2017-11-10 open Liabilities:Credit-Cards:Spouse:Citi:Addon
+            2018-11-10 close Liabilities:Credit-Cards:Spouse:Citi
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
-            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi
-            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi-CustomCash
-            2017-11-10 open Liabilities:Credit-Cards:Wife:Citi:Addon
-            2018-11-10 close Liabilities:Credit-Cards:Wife:Citi
-            2018-11-10 close Liabilities:Credit-Cards:Wife:Citi:Addon
+            2017-11-10 open Liabilities:Credit-Cards:Spouse:Citi
+            2017-11-10 open Liabilities:Credit-Cards:Spouse:Citi-CustomCash
+            2017-11-10 open Liabilities:Credit-Cards:Spouse:Citi:Addon
+            2018-11-10 close Liabilities:Credit-Cards:Spouse:Citi
+            2018-11-10 close Liabilities:Credit-Cards:Spouse:Citi:Addon
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
