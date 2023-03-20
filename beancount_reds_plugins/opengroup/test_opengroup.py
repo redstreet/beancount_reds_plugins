@@ -1,29 +1,16 @@
-import unittest
-
 import beancount_reds_plugins.opengroup.opengroup as opengroup
 from beancount.parser import options
 from beancount import loader
+from beancount.parser import cmptest
 
 
 ruleset = "{}"
 
 
-def s(e):
-    return sorted(e, key=lambda x: (x.date, getattr(x, 'account', 'XXX')))
-
-
-class Testopengroup(unittest.TestCase):
-    def compare_opens(self, a, b):
-        self.assertEqual(len(a), len(b))
-        for i, j in zip(s(a), s(b)):
-            self.assertEqual(i.date,       j.date)
-            self.assertEqual(i.account,    j.account)
-            self.assertEqual(i.currencies, i.currencies)
-            self.assertEqual(i.booking,    j.booking)
-
+class Testopengroup(cmptest.TestCase):
     def test_empty_entries(self):
         new_entries, _ = opengroup.opengroup([], options.OPTIONS_DEFAULTS.copy(), ruleset)
-        self.assertEqual([], new_entries)
+        self.assertEqualEntries([], new_entries)
 
     def test_basic(self):
         entries, _, _ = loader.load_string("""
@@ -44,7 +31,7 @@ class Testopengroup(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = opengroup.opengroup(entries, {}, ruleset)
-        self.compare_opens(actual, expected)
+        self.assertEqualEntries(actual, expected)
 
     def test_ticker(self):
         entries, _, _ = loader.load_string("""
@@ -67,7 +54,7 @@ class Testopengroup(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = opengroup.opengroup(entries, {}, ruleset)
-        self.compare_opens(actual, expected)
+        self.assertEqualEntries(actual, expected)
 
     def test_rule_fifo(self):
         entries, _, _ = loader.load_string("""
@@ -84,4 +71,4 @@ class Testopengroup(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = opengroup.opengroup(entries, {}, ruleset)
-        self.compare_opens(actual, expected)
+        self.assertEqualEntries(actual, expected)

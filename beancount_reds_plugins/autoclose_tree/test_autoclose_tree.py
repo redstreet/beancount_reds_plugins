@@ -1,15 +1,10 @@
-import unittest
-
 import beancount_reds_plugins.autoclose_tree.autoclose_tree as autoclose_tree
 from beancount.parser import options
 from beancount import loader
+from beancount.parser import cmptest
 
 
-def s(e):
-    return sorted(e, key=lambda x: (x.date, getattr(x, 'account', 'XXX')))
-
-
-class TestCloseAccountTree(unittest.TestCase):
+class TestCloseTree(cmptest.TestCase):
     def test_empty_entries(self):
         new_entries, _ = autoclose_tree.autoclose_tree([], options.OPTIONS_DEFAULTS.copy())
         self.assertEqual([], new_entries)
@@ -29,9 +24,7 @@ class TestCloseAccountTree(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
-        for a, e in zip(s(actual), s(expected)):
-            self.assertEqual(a.date, e.date)
-            self.assertEqual(a.account, e.account)
+        self.assertEqualEntries(actual, expected)
 
     def test_leave_others_untouched(self):
         entries, _, _ = loader.load_string("""
@@ -64,9 +57,7 @@ class TestCloseAccountTree(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
-        for a, e in zip(s(actual), s(expected)):
-            self.assertEqual(a.date, e.date)
-            self.assertEqual(a.account, e.account)
+        self.assertEqualEntries(actual, expected)
 
     def test_override(self):
         entries, _, _ = loader.load_string("""
@@ -87,9 +78,7 @@ class TestCloseAccountTree(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
-        for a, e in zip(s(actual), s(expected)):
-            self.assertEqual(a.date, e.date)
-            self.assertEqual(a.account, e.account)
+        self.assertEqualEntries(actual, expected)
 
     def test_override_complex(self):
         entries, _, _ = loader.load_string("""
@@ -104,16 +93,15 @@ class TestCloseAccountTree(unittest.TestCase):
             2014-01-01 open Assets:XBank
             2014-01-01 open Assets:XBank:AAPL
             2014-01-01 open Assets:XBank:AAPL:Fuji
+
             2015-01-01 close Assets:XBank:AAPL
             2015-01-01 close Assets:XBank:AAPL:Fuji
+
             2016-01-01 close Assets:XBank
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
-        self.assertEqual(len(actual), len(expected))
-        for a, e in zip(s(actual), s(expected)):
-            self.assertEqual(a.date, e.date)
-            self.assertEqual(a.account, e.account)
+        self.assertEqualEntries(actual, expected)
 
     def test_match(self):
         entries, _, _ = loader.load_string("""
@@ -132,10 +120,7 @@ class TestCloseAccountTree(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
-        self.assertEqual(len(actual), len(expected))
-        for a, e in zip(s(actual), s(expected)):
-            self.assertEqual(a.date, e.date)
-            self.assertEqual(a.account, e.account)
+        self.assertEqualEntries(actual, expected)
 
     def test_close_unopened_parent(self):
         entries, _, _ = loader.load_string("""
@@ -152,19 +137,17 @@ class TestCloseAccountTree(unittest.TestCase):
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
-        self.assertEqual(len(actual), len(expected))
-        for a, e in zip(s(actual), s(expected)):
-            self.assertEqual(a.date, e.date)
-            self.assertEqual(a.account, e.account)
+        self.assertEqualEntries(actual, expected)
 
     def test_auto_accounts_parent_close(self):
         entries, _, _ = loader.load_string("""
-            2021-06-17 close Expenses:Non-Retirement:Auto:Fit
             plugin "beancount.plugins.auto_accounts"
 
             2019-01-01 * "Transaction"
               Expenses:Non-Retirement:Auto:Fit:Insurance   -10 USD
               Expenses:Non-Retirement:Auto:Fit:Gas
+
+            2021-06-17 close Expenses:Non-Retirement:Auto:Fit
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
@@ -175,12 +158,11 @@ class TestCloseAccountTree(unittest.TestCase):
               Expenses:Non-Retirement:Auto:Fit:Insurance   -10 USD
               Expenses:Non-Retirement:Auto:Fit:Gas
 
+            2021-06-17 open Expenses:Non-Retirement:Auto:Fit
             2021-06-17 close Expenses:Non-Retirement:Auto:Fit:Insurance
             2021-06-17 close Expenses:Non-Retirement:Auto:Fit:Gas
+            2021-06-17 close Expenses:Non-Retirement:Auto:Fit
         """, dedent=True)
 
         actual, _ = autoclose_tree.autoclose_tree(entries, {})
-        self.assertEqual(len(actual), len(expected))
-        for a, e in zip(s(actual), s(expected)):
-            self.assertEqual(a.date, e.date)
-            self.assertEqual(getattr(a, 'account', 'XXX'), getattr(e, 'account', 'XXX'))
+        self.assertEqualEntries(actual, expected)
