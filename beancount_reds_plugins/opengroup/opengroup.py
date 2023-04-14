@@ -20,7 +20,7 @@ default_rules = {
      ('Expenses:Fees-and-Charges:Brokerage-Fees:{taxability}:{account_name}', '{f_opcurr}'),
     ]),
 
-  'commodity_leaves': (  # Open common set of investment accounts with commodity leaves
+  'commodity_leaves_income': (  # Open common set of investment accounts with commodity leaves
     '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('Income:{subroot}:{taxability}:Dividends:{account_name}:{f_ticker}',     '{f_opcurr}'),
@@ -28,7 +28,7 @@ default_rules = {
      ('Income:{subroot}:{taxability}:Capital-Gains:{account_name}:{f_ticker}', '{f_opcurr}'),
     ]),
 
-  'commodity_leaves_default_booking': (  # Open commodity_leaves + asset account for the ticker
+  'commodity_leaves_income_and_asset': (  # Open commodity_leaves_income + asset account for the ticker
     '(?P<root>[^:]*):(?P<subroot>[^:]*):(?P<taxability>[^:]*):(?P<account_name>.*)',
 
     [('{f_acct}:{f_ticker}',                                                   '{f_ticker}'),

@@ -15,7 +15,7 @@ class Testopengroup(cmptest.TestCase):
     def test_basic(self):
         entries, _, _ = loader.load_string("""
             2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
-              opengroup_commodity_leaves: "ABC,DEFGH"
+              opengroup_commodity_leaves_income: "ABC,DEFGH"
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
@@ -36,7 +36,7 @@ class Testopengroup(cmptest.TestCase):
     def test_ticker(self):
         entries, _, _ = loader.load_string("""
             2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
-              opengroup_commodity_leaves_default_booking: "ABC,DEFGH"
+              opengroup_commodity_leaves_income_and_asset: "ABC,DEFGH"
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
@@ -59,7 +59,7 @@ class Testopengroup(cmptest.TestCase):
     def test_rule_fifo(self):
         entries, _, _ = loader.load_string("""
             2000-01-01 open Assets:Investments:Taxable:Midelity PARENT
-              opengroup_commodity_leaves: "ABC"
+              opengroup_commodity_leaves_income: "ABC"
         """, dedent=True)
 
         expected, _, _ = loader.load_string("""
