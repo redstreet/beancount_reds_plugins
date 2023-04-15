@@ -2,6 +2,7 @@
 
 # flake8: noqa
 import re
+import sys
 import time
 from ast import literal_eval
 from beancount.core import data
@@ -46,8 +47,13 @@ default_rules = {
 }  # type: ignore
 
 
-def run_rule(rules, rulename, f_acct, f_ticker, f_opcurr):
-    rule, inserts = rules[rulename]
+def run_rule(rules, rulename, f_acct, f_ticker, f_opcurr, entry):
+    try:
+        rule, inserts = rules[rulename]
+    except KeyError:
+        print(f"WARNING (opengroup): {rulename} not found in rules. "
+              f"{entry.meta['filename']}:{entry.meta['lineno']}", file=sys.stderr)
+        return []
     components = re.search(rule, f_acct).groupdict()
     components.update(locals())
 
@@ -89,7 +95,7 @@ def opengroup(entries, options_map, config):
                 oc, rule = m.split('_', 1)
                 # Insert open entries
                 for leaf in entry.meta[m].split(","):
-                    for acc_params in run_rule(rules, rule, entry.account, leaf, op_currency):
+                    for acc_params in run_rule(rules, rule, entry.account, leaf, op_currency, entry):
                         meta = data.new_metadata(entry.meta["filename"], entry.meta["lineno"])
                         if oc == 'opengroup':
                             new_entries.append(data.Open(meta, entry.date, *acc_params))
