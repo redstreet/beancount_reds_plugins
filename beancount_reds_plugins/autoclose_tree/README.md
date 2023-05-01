@@ -1,3 +1,6 @@
+NOTE: this plugin has now been merged into [Beancount](https://github.com/beancount/beancount/pull/751) and will no longer be
+maintained here.
+
 ## autoclose_tree plugin for Beancount
 
 Automatically closes all of an account's descendants when an account is closed. For
