@@ -246,6 +246,11 @@ def zerosum(entries, options_map, config):  # noqa: C901
                     return (p, t)
         return None
 
+    def generate_match_id():
+        '''Generates a random string to be used as the match ID.'''
+        return ''.join(
+            random.choices(string.ascii_letters + string.digits, k=20))
+
     if DEBUG:
         # pr = cProfile.Profile()
         # pr.enable()
@@ -290,8 +295,7 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             # print('Match:', txn.date, match[1].date, match[1].date - txn.date,
                             #         posting.units, posting.meta['lineno'], match[0].meta['lineno'])
                             match_count += 1
-                            match_id = ''.join(random.choices(
-                                string.ascii_letters + string.digits, k=20))
+                            match_id = generate_match_id() if match_metadata else None
                             account_replace(txn,      posting,  target_account,
                                             match_id=match_id)
                             account_replace(match[1], match[0], target_account,
