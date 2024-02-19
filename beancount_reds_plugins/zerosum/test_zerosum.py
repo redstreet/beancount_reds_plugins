@@ -78,6 +78,7 @@ class TestUnrealized(unittest.TestCase):
         for (m, p) in ref:
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary',
                              matched[m].postings[p].account)
+            self.assertTrue('match_id' not in matched[m].postings[p].meta)
 
     @loader.load_doc()
     def test_above_tolerance(self, entries, _, options_map):
@@ -202,7 +203,30 @@ class TestUnrealized(unittest.TestCase):
         self.assertEqual(0, len(matched_txns))
 
     @loader.load_doc()
-    def test_match_metadata_added(self, entries, _, options_map):
+    def test_no_match_id_by_default(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Green
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        2015-06-15 * "Expensive furniture"
+          Liabilities:Credit-Cards:Green  -2526.02 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+
+        2015-06-23 * "Expensive furniture Refund"
+          Liabilities:Credit-Cards:Green  1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+
+        self.assertEqual(2, len(matched))
+        for m in matched:
+            for p in m.postings:
+                self.assertTrue('match_id' not in p.meta)
+
+    @loader.load_doc()
+    def test_match_id_successfully_added(self, entries, _, options_map):
         """
         2023-01-01 open Income:Salary
         2023-01-01 open Assets:Bank:Checkings
@@ -223,7 +247,9 @@ class TestUnrealized(unittest.TestCase):
           Assets:Brokerage:401k                          100.59 USD
           Assets:Zero-Sum-Accounts:401k
         """
-        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+        new_entries, _ = zerosum.zerosum(
+            entries, options_map,
+            config[:-2] + """'match_metadata': True,\n}""")
 
         matched = dict(
             [(m.narration, m) for m in
