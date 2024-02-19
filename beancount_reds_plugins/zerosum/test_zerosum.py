@@ -1,7 +1,8 @@
-import unittest
 import re
+import unittest
 
 import beancount_reds_plugins.zerosum.zerosum as zerosum
+
 from beancount.core import data
 from beancount.parser import options
 from beancount import loader
@@ -9,6 +10,8 @@ from beancount import loader
 config = """{
  'zerosum_accounts' : {
  'Assets:Zero-Sum-Accounts:Returns-and-Temporary'              : ('', 90),
+ 'Assets:Zero-Sum-Accounts:Checkings'                          : ('', 90),
+ 'Assets:Zero-Sum-Accounts:401k'                               : ('', 90),
   },
   'account_name_replace' : ('Zero-Sum-Accounts', 'ZSA-Matched'),
   'tolerance' : 0.0098,
@@ -21,22 +24,6 @@ def get_entries_with_acc_regexp(entries, regexp):
             for entry in entries
             if (isinstance(entry, data.Transaction) and
                 any(re.search(regexp, posting.account) for posting in entry.postings))]
-
-
-def get_entries_with_narration(entries, regexp):
-    """Return the entries whose narration matches the regexp.
-
-    Args:
-      entries: A list of directives.
-      regexp: A regular expression string, to be matched against the
-        narration field of transactions.
-    Returns:
-      A list of directives.
-    """
-    return [entry
-            for entry in entries
-            if (isinstance(entry, data.Transaction) and
-                re.search(regexp, entry.narration))]
 
 
 class TestUnrealized(unittest.TestCase):
@@ -89,7 +76,8 @@ class TestUnrealized(unittest.TestCase):
         ref = [(0, 1), (0, 2), (1, 1), (2, 1)]
 
         for (m, p) in ref:
-            self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary', matched[m].postings[p].account)
+            self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary',
+                             matched[m].postings[p].account)
 
     @loader.load_doc()
     def test_above_tolerance(self, entries, _, options_map):
@@ -212,3 +200,37 @@ class TestUnrealized(unittest.TestCase):
 
         matched_txns = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
         self.assertEqual(0, len(matched_txns))
+
+    @loader.load_doc()
+    def test_match_metadata_added(self, entries, _, options_map):
+        """
+        2023-01-01 open Income:Salary
+        2023-01-01 open Assets:Bank:Checkings
+        2023-01-01 open Assets:Zero-Sum-Accounts:Checkings
+        2023-01-01 open Assets:Brokerage:401k
+        2023-01-01 open Assets:Zero-Sum-Accounts:401k
+
+        2024-02-15 * "Pay stub"
+          Income:Salary                                -1100.06 USD
+          Assets:Zero-Sum-Accounts:Checkings             999.47 USD
+          Assets:Zero-Sum-Accounts:401k                  100.59 USD
+
+        2024-02-16 * "Bank account"
+          Assets:Bank:Checkings                          999.47 USD
+          Assets:Zero-Sum-Accounts:Checkings
+
+        2024-02-16 * "401k statement"
+          Assets:Brokerage:401k                          100.59 USD
+          Assets:Zero-Sum-Accounts:401k
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched = dict(
+            [(m.narration, m) for m in
+             get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')])
+
+        self.assertEqual(3, len(matched))
+        self.assertEqual(matched["Pay stub"].postings[1].meta['match_id'],
+                         matched["Bank account"].postings[1].meta['match_id'])
+        self.assertEqual(matched["Pay stub"].postings[2].meta['match_id'],
+                         matched["401k statement"].postings[1].meta['match_id'])
