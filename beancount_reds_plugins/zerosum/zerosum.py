@@ -161,9 +161,12 @@ TODO:
 
 """
 
-import time
-from ast import literal_eval
 import datetime
+import random
+import string
+import time
+
+from ast import literal_eval
 from collections import defaultdict
 
 from beancount.core import data
@@ -172,14 +175,22 @@ from beancount_reds_plugins.common import common
 
 DEBUG = 0
 DEFAULT_TOLERANCE = 0.0099
+MATCHING_ID_STRING = "match_id"
+random.seed(6) # arbitrary fixed seed
 
 __plugins__ = ('zerosum', 'flag_unmatched',)
 
 
 # replace the account on a given posting with a new account
-def account_replace(txn, posting, new_account):
+def account_replace(txn, posting, new_account, match_id):
     # create a new posting with the new account, then remove old and add new
     # from parent transaction
+    if match_id:
+        if posting.meta:
+            # Will overwrite an existing match (shouldn't exist)
+            posting.meta.update({MATCHING_ID_STRING: match_id})
+        else:
+            posting.meta = {MATCHING_ID_STRING: match_id}
     new_posting = posting._replace(account=new_account)
     txn.postings.remove(posting)
     txn.postings.append(new_posting)
@@ -207,6 +218,9 @@ def zerosum(entries, options_map, config):  # noqa: C901
 
       - 'flag_unmatched': bool to control whether to flag unmatched
         transactions as warnings (default off)
+
+      - 'match_metadata': bool to control whether matched postings have metadata
+        linking the matched transactions, allowing manual verification in post.
 
       See example for more info.
 
@@ -241,6 +255,7 @@ def zerosum(entries, options_map, config):  # noqa: C901
     zs_accounts_list = config_obj.pop('zerosum_accounts', {})
     (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ('', ''))
     tolerance = config_obj.pop('tolerance', DEFAULT_TOLERANCE)
+    match_metadata = config_obj.pop('match_metadata', False)
 
     new_accounts = set()
     zerosum_postings_count = 0
@@ -275,8 +290,12 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             # print('Match:', txn.date, match[1].date, match[1].date - txn.date,
                             #         posting.units, posting.meta['lineno'], match[0].meta['lineno'])
                             match_count += 1
-                            account_replace(txn,      posting,  target_account)
-                            account_replace(match[1], match[0], target_account)
+                            match_id = ''.join(random.choices(
+                                string.ascii_letters + string.digits, k=20))
+                            account_replace(txn,      posting,  target_account,
+                                            match_id=match_id)
+                            account_replace(match[1], match[0], target_account,
+                                            match_id=match_id)
                             new_accounts.add(target_account)
                             reprocess = True
                             break
