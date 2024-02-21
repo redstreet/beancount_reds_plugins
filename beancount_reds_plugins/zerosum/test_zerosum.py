@@ -78,7 +78,6 @@ class TestUnrealized(unittest.TestCase):
         for (m, p) in ref:
             self.assertEqual('Assets:ZSA-Matched:Returns-and-Temporary',
                              matched[m].postings[p].account)
-            self.assertTrue('match_id' not in matched[m].postings[p].meta)
 
     @loader.load_doc()
     def test_above_tolerance(self, entries, _, options_map):

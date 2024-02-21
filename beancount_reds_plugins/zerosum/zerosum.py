@@ -176,7 +176,7 @@ from beancount_reds_plugins.common import common
 DEBUG = 0
 DEFAULT_TOLERANCE = 0.0099
 MATCHING_ID_STRING = "match_id"
-random.seed(6) # arbitrary fixed seed
+random.seed(6)  # arbitrary fixed seed
 
 __plugins__ = ('zerosum', 'flag_unmatched',)
 
@@ -297,9 +297,9 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             match_count += 1
                             match_id = generate_match_id() if match_metadata else None
                             account_replace(txn,      posting,  target_account,
-                                            match_id=match_id)
+                                            match_id)
                             account_replace(match[1], match[0], target_account,
-                                            match_id=match_id)
+                                            match_id)
                             new_accounts.add(target_account)
                             reprocess = True
                             break
