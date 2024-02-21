@@ -1,11 +1,12 @@
 option "operating_currency" "USD"
 plugin "beancount_reds_plugins.zerosum.zerosum" "{
- 'zerosum_accounts' : { 
+ 'zerosum_accounts' : {
     'Assets:Reimbursements:Workplace' : ('Assets:Reimbursements-Received:Workplace',   40),
     'Assets:Rebates'                  : ('Assets:ZeroSum-Matched:Rebates',            180),
     'Assets:ZeroSum:Bank-Transfers'   : ('',                                            3),
   },
-  'account_name_replace' : ('ZeroSum', 'ZeroSum-Matched')
+  'account_name_replace' : ('ZeroSum', 'ZeroSum-Matched'),
+  'match_metadata': True,
  }"
 
 2000-01-01 open Liabilities:Credit-Card         USD
@@ -30,7 +31,7 @@ plugin "beancount_reds_plugins.zerosum.zerosum" "{
 
 2010-02-03 * "Reimbursement"
      Assets:Bank:Checking                25 USD
-     Assets:Reimbursements:Workplace 
+     Assets:Reimbursements:Workplace
 
 
 
