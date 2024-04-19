@@ -21,7 +21,7 @@ LINK_FORMAT = 'edate-{date}-{random}'
 def has_valid_effective_date(posting):
     return posting.meta is not None and \
              'effective_date' in posting.meta and \
-             type(posting.meta['effective_date']) == datetime.date
+             type(posting.meta['effective_date']) is datetime.date
 
 
 def has_posting_with_valid_effective_date(entry):
@@ -207,7 +207,7 @@ def effective_date_transaction(entries, options_map, config):
         outlist = (interesting_entries
                    if (isinstance(entry, data.Transaction) and
                        'effective_date' in entry.meta and
-                       type(entry.meta['effective_date']) == datetime.date)
+                       type(entry.meta['effective_date']) is datetime.date)
                    else filtered_entries)
         outlist.append(entry)
 
@@ -215,7 +215,7 @@ def effective_date_transaction(entries, options_map, config):
     # for e in interesting_entries:
     #     # print(e)
     #     printer.print_entry(e)
-    #     print(type(e.meta.effective_date) == datetime.date)
+    #     print(type(e.meta.effective_date) is datetime.date)
     #     print("")
     # print("------")
 
