@@ -259,3 +259,39 @@ class TestUnrealized(unittest.TestCase):
                          matched["Bank account"].postings[1].meta['match_id'])
         self.assertEqual(matched["Pay stub"].postings[2].meta['match_id'],
                          matched["401k statement"].postings[1].meta['match_id'])
+
+    @loader.load_doc()
+    def test_match_name_successfully_changed(self, entries, _, options_map):
+        """
+        2023-01-01 open Income:Salary
+        2023-01-01 open Assets:Bank:Checkings
+        2023-01-01 open Assets:Zero-Sum-Accounts:Checkings
+        2023-01-01 open Assets:Brokerage:401k
+        2023-01-01 open Assets:Zero-Sum-Accounts:401k
+
+        2024-02-15 * "Pay stub"
+          Income:Salary                                -1100.06 USD
+          Assets:Zero-Sum-Accounts:Checkings             999.47 USD
+          Assets:Zero-Sum-Accounts:401k                  100.59 USD
+
+        2024-02-16 * "Bank account"
+          Assets:Bank:Checkings                          999.47 USD
+          Assets:Zero-Sum-Accounts:Checkings
+
+        2024-02-16 * "401k statement"
+          Assets:Brokerage:401k                          100.59 USD
+          Assets:Zero-Sum-Accounts:401k
+        """
+        new_entries, _ = zerosum.zerosum(
+            entries, options_map,
+            config[:-2] + """'match_metadata': True,\n'match_metadata_name': 'MATCH'}""")
+
+        matched = dict(
+            [(m.narration, m) for m in
+             get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')])
+
+        self.assertEqual(3, len(matched))
+        self.assertEqual(matched["Pay stub"].postings[1].meta['MATCH'],
+                         matched["Bank account"].postings[1].meta['MATCH'])
+        self.assertEqual(matched["Pay stub"].postings[2].meta['MATCH'],
+                         matched["401k statement"].postings[1].meta['MATCH'])
