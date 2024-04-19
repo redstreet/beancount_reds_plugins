@@ -316,7 +316,7 @@ class TestUnrealized(unittest.TestCase):
 
         self.assertEqual(2, len(matched))
         for m in matched:
-            self.assertTrue(not any(link.startswith("ZeroSum.") for link in m.links))
+            self.assertFalse(any(link.startswith("ZeroSum.") for link in m.links))
 
     @loader.load_doc()
     def test_link_successfully_added(self, entries, _, options_map):
@@ -354,6 +354,8 @@ class TestUnrealized(unittest.TestCase):
             any(link.startswith("ZeroSum.") for link in (matched["Pay stub"].links & matched["Bank account"].links)))
         self.assertTrue(
             any(link.startswith("ZeroSum.") for link in (matched["Pay stub"].links & matched["401k statement"].links)))
+        self.assertFalse(
+            any(link.startswith("ZeroSum.") for link in (matched["Bank account"].links & matched["401k statement"].links)))
 
     @loader.load_doc()
     def test_link_prefix_successfully_changed(self, entries, _, options_map):
@@ -391,3 +393,5 @@ class TestUnrealized(unittest.TestCase):
             any(link.startswith("ZSM") for link in (matched["Pay stub"].links & matched["Bank account"].links)))
         self.assertTrue(
             any(link.startswith("ZSM") for link in (matched["Pay stub"].links & matched["401k statement"].links)))
+        self.assertFalse(
+            any(link.startswith("ZSM") for link in (matched["Bank account"].links & matched["401k statement"].links)))
