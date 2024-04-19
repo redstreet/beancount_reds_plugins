@@ -295,3 +295,99 @@ class TestUnrealized(unittest.TestCase):
                          matched["Bank account"].postings[1].meta['MATCH'])
         self.assertEqual(matched["Pay stub"].postings[2].meta['MATCH'],
                          matched["401k statement"].postings[1].meta['MATCH'])
+
+    @loader.load_doc()
+    def test_no_links_by_default(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Green
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        2015-06-15 * "Expensive furniture"
+          Liabilities:Credit-Cards:Green  -2526.02 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+
+        2015-06-23 * "Expensive furniture Refund"
+          Liabilities:Credit-Cards:Green  1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched = get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')
+
+        self.assertEqual(2, len(matched))
+        for m in matched:
+            self.assertTrue(not any(link.startswith("ZeroSum.") for link in m.links))
+
+    @loader.load_doc()
+    def test_link_successfully_added(self, entries, _, options_map):
+        """
+        2023-01-01 open Income:Salary
+        2023-01-01 open Assets:Bank:Checkings
+        2023-01-01 open Assets:Zero-Sum-Accounts:Checkings
+        2023-01-01 open Assets:Brokerage:401k
+        2023-01-01 open Assets:Zero-Sum-Accounts:401k
+
+        2024-02-15 * "Pay stub"
+          Income:Salary                                -1100.06 USD
+          Assets:Zero-Sum-Accounts:Checkings             999.47 USD
+          Assets:Zero-Sum-Accounts:401k                  100.59 USD
+
+        2024-02-16 * "Bank account"
+          Assets:Bank:Checkings                          999.47 USD
+          Assets:Zero-Sum-Accounts:Checkings
+
+        2024-02-16 * "401k statement"
+          Assets:Brokerage:401k                          100.59 USD
+          Assets:Zero-Sum-Accounts:401k
+        """
+        new_entries, _ = zerosum.zerosum(
+            entries, options_map,
+            config[:-2] + """'link_transactions': True,\n}""")
+
+        matched = dict(
+            [(m.narration, m) for m in
+             get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')])
+
+        self.assertEqual(3, len(matched))
+
+        self.assertTrue(
+            any(link.startswith("ZeroSum.") for link in (matched["Pay stub"].links & matched["Bank account"].links)))
+        self.assertTrue(
+            any(link.startswith("ZeroSum.") for link in (matched["Pay stub"].links & matched["401k statement"].links)))
+
+    @loader.load_doc()
+    def test_link_prefix_successfully_changed(self, entries, _, options_map):
+        """
+        2023-01-01 open Income:Salary
+        2023-01-01 open Assets:Bank:Checkings
+        2023-01-01 open Assets:Zero-Sum-Accounts:Checkings
+        2023-01-01 open Assets:Brokerage:401k
+        2023-01-01 open Assets:Zero-Sum-Accounts:401k
+
+        2024-02-15 * "Pay stub"
+          Income:Salary                                -1100.06 USD
+          Assets:Zero-Sum-Accounts:Checkings             999.47 USD
+          Assets:Zero-Sum-Accounts:401k                  100.59 USD
+
+        2024-02-16 * "Bank account"
+          Assets:Bank:Checkings                          999.47 USD
+          Assets:Zero-Sum-Accounts:Checkings
+
+        2024-02-16 * "401k statement"
+          Assets:Brokerage:401k                          100.59 USD
+          Assets:Zero-Sum-Accounts:401k
+        """
+        new_entries, _ = zerosum.zerosum(
+            entries, options_map,
+            config[:-2] + """'link_transactions': True,\n'link_prefix': 'ZSM'}""")
+
+        matched = dict(
+            [(m.narration, m) for m in
+             get_entries_with_acc_regexp(new_entries, ':ZSA-Matched')])
+
+        self.assertEqual(3, len(matched))
+
+        self.assertTrue(
+            any(link.startswith("ZSM") for link in (matched["Pay stub"].links & matched["Bank account"].links)))
+        self.assertTrue(
+            any(link.startswith("ZSM") for link in (matched["Pay stub"].links & matched["401k statement"].links)))
