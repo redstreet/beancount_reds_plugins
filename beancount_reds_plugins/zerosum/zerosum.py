@@ -176,6 +176,7 @@ from beancount_reds_plugins.common import common
 DEBUG = 0
 DEFAULT_TOLERANCE = 0.0099
 MATCHING_ID_STRING = "match_id"
+LINK_PREFIX = "ZeroSum."
 random.seed(6)  # arbitrary fixed seed
 
 __plugins__ = ('zerosum', 'flag_unmatched',)
@@ -194,6 +195,11 @@ def account_replace(txn, posting, new_account, match_id, matching_id_string):
     new_posting = posting._replace(account=new_account)
     txn.postings.remove(posting)
     txn.postings.append(new_posting)
+
+
+def transaction_update(txn, match_id, link_prefix):
+    if match_id and link_prefix:
+        txn.links.add(link_prefix + match_id)
 
 
 def zerosum(entries, options_map, config):  # noqa: C901
@@ -223,6 +229,11 @@ def zerosum(entries, options_map, config):  # noqa: C901
         linking the matched transactions, allowing manual verification in post (default off)
 
       - 'match_metadata_name': name to use for matched posting metadata (default 'match_id')
+
+      - 'link_transactions': bool to control whether the transactions of matched postings
+        have links added, allowing manual verification in post (default off)
+
+      - 'link_prefix': prefix to use in link names (default 'ZeroSum.')
 
       See example for more info.
 
@@ -264,6 +275,8 @@ def zerosum(entries, options_map, config):  # noqa: C901
     tolerance = config_obj.pop('tolerance', DEFAULT_TOLERANCE)
     match_metadata = config_obj.pop('match_metadata', False)
     match_metadata_name = config_obj.pop('match_metadata_name', MATCHING_ID_STRING if match_metadata else "")
+    link_transactions = config_obj.pop('link_transactions', False)
+    link_prefix = config_obj.pop('link_prefix', LINK_PREFIX if link_transactions else "")
 
     new_accounts = set()
     zerosum_postings_count = 0
@@ -271,8 +284,12 @@ def zerosum(entries, options_map, config):  # noqa: C901
 
     # Build zerosum_txns_all for all zs_accounts, so we iterate through entries only once (for performance)
     zerosum_txns_all = defaultdict(list)
-    for entry in entries:
+    for i, entry in enumerate(entries):
         if isinstance(entry, data.Transaction):
+            if link_transactions:
+                entry = entry._replace(links=set(entry.links))  # unfreeze links set
+                entries[i] = entry
+
             for zs_account, _ in zs_accounts_list.items():
                 if any(posting.account == zs_account for posting in entry.postings):
                     zerosum_txns_all[zs_account].append(entry)
@@ -298,16 +315,28 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             # print('Match:', txn.date, match[1].date, match[1].date - txn.date,
                             #         posting.units, posting.meta['lineno'], match[0].meta['lineno'])
                             match_count += 1
-                            match_id = generate_match_id() if match_metadata else None
+                            match_id = generate_match_id() if match_metadata or link_transactions else None
                             account_replace(txn,      posting,  target_account,
                                             match_id, match_metadata_name)
                             account_replace(match[1], match[0], target_account,
                                             match_id, match_metadata_name)
+
+                            if link_transactions:
+                                transaction_update(txn, match_id, link_prefix)
+                                transaction_update(match[1], match_id, link_prefix)
+
                             new_accounts.add(target_account)
                             reprocess = True
                             break
 
     new_open_entries = common.create_open_directives(new_accounts, entries, meta_desc='<zerosum>')
+
+    if link_transactions:
+        for i, entry in enumerate(entries):
+            if isinstance(entry, data.Transaction):
+                if len(entry.links) == 0:
+                    entries[i] = entry._replace(links=data.EMPTY_SET)
+                    # re-freeze empty sets
 
     if DEBUG:
         elapsed_time = time.time() - start_time
