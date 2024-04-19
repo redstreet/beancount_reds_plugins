@@ -182,15 +182,15 @@ __plugins__ = ('zerosum', 'flag_unmatched',)
 
 
 # replace the account on a given posting with a new account
-def account_replace(txn, posting, new_account, match_id):
+def account_replace(txn, posting, new_account, match_id, matching_id_string):
     # create a new posting with the new account, then remove old and add new
     # from parent transaction
     if match_id:
         if posting.meta:
             # Will overwrite an existing match (shouldn't exist)
-            posting.meta.update({MATCHING_ID_STRING: match_id})
+            posting.meta.update({matching_id_string: match_id})
         else:
-            posting.meta = {MATCHING_ID_STRING: match_id}
+            posting.meta = {matching_id_string: match_id}
     new_posting = posting._replace(account=new_account)
     txn.postings.remove(posting)
     txn.postings.append(new_posting)
@@ -204,7 +204,7 @@ def zerosum(entries, options_map, config):  # noqa: C901
 
       options_map: a dict of options parsed from the file (not used)
 
-      config: Python dict with two entries:
+      config: Python dict with the following entries:
 
       - 'zerosum_accounts': maps zerosum_account_name -> (matched_zerosum_account_name,
         date_range). matched_zerosum_account_name is optional, and can be left blank. If
@@ -220,7 +220,9 @@ def zerosum(entries, options_map, config):  # noqa: C901
         transactions as warnings (default off)
 
       - 'match_metadata': bool to control whether matched postings have metadata
-        linking the matched transactions, allowing manual verification in post.
+        linking the matched transactions, allowing manual verification in post (default off)
+
+      - 'match_metadata_name': name to use for matched posting metadata (default 'match_id')
 
       See example for more info.
 
@@ -261,6 +263,7 @@ def zerosum(entries, options_map, config):  # noqa: C901
     (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ('', ''))
     tolerance = config_obj.pop('tolerance', DEFAULT_TOLERANCE)
     match_metadata = config_obj.pop('match_metadata', False)
+    match_metadata_name = config_obj.pop('match_metadata_name', MATCHING_ID_STRING if match_metadata else "")
 
     new_accounts = set()
     zerosum_postings_count = 0
@@ -297,9 +300,9 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             match_count += 1
                             match_id = generate_match_id() if match_metadata else None
                             account_replace(txn,      posting,  target_account,
-                                            match_id)
+                                            match_id, match_metadata_name)
                             account_replace(match[1], match[0], target_account,
-                                            match_id)
+                                            match_id, match_metadata_name)
                             new_accounts.add(target_account)
                             reprocess = True
                             break
