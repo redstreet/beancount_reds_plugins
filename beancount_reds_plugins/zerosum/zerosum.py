@@ -286,7 +286,7 @@ def zerosum(entries, options_map, config):  # noqa: C901
     zerosum_txns_all = defaultdict(list)
     for i, entry in enumerate(entries):
         if isinstance(entry, data.Transaction):
-            if link_transactions:
+            if link_transactions and type(entry.links) is frozenset:
                 entry = entry._replace(links=set(entry.links))  # unfreeze links set
                 entries[i] = entry
 
