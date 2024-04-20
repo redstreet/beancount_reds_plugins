@@ -183,19 +183,20 @@ __plugins__ = ('zerosum', 'flag_unmatched',)
 
 
 # replace the account on a given posting with a new account
-def account_replace(txn, posting, new_account, match_id, matching_id_string):
+def account_replace(txn, posting, new_account):
     # create a new posting with the new account, then remove old and add new
     # from parent transaction
-    if match_id:
+    new_posting = posting._replace(account=new_account)
+    txn.postings.remove(posting)
+    txn.postings.append(new_posting)
+
+def metadata_update(txn, posting, match_id, matching_id_string):
+    if match_id and matching_id_string:
         if posting.meta:
             # Will overwrite an existing match (shouldn't exist)
             posting.meta.update({matching_id_string: match_id})
         else:
             posting.meta = {matching_id_string: match_id}
-    new_posting = posting._replace(account=new_account)
-    txn.postings.remove(posting)
-    txn.postings.append(new_posting)
-
 
 def transaction_update(txn, match_id, link_prefix):
     if match_id and link_prefix:
@@ -274,9 +275,9 @@ def zerosum(entries, options_map, config):  # noqa: C901
     (account_name_from, account_name_to) = config_obj.pop('account_name_replace', ('', ''))
     tolerance = config_obj.pop('tolerance', DEFAULT_TOLERANCE)
     match_metadata = config_obj.pop('match_metadata', False)
-    match_metadata_name = config_obj.pop('match_metadata_name', MATCHING_ID_STRING if match_metadata else "")
+    match_metadata_name = config_obj.pop('match_metadata_name', MATCHING_ID_STRING)
     link_transactions = config_obj.pop('link_transactions', False)
-    link_prefix = config_obj.pop('link_prefix', LINK_PREFIX if link_transactions else "")
+    link_prefix = config_obj.pop('link_prefix', LINK_PREFIX)
 
     new_accounts = set()
     zerosum_postings_count = 0
@@ -315,11 +316,15 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             # print('Match:', txn.date, match[1].date, match[1].date - txn.date,
                             #         posting.units, posting.meta['lineno'], match[0].meta['lineno'])
                             match_count += 1
+
+                            account_replace(txn,      posting,  target_account)
+                            account_replace(match[1], match[0], target_account)
+
                             match_id = generate_match_id() if match_metadata or link_transactions else None
-                            account_replace(txn,      posting,  target_account,
-                                            match_id, match_metadata_name)
-                            account_replace(match[1], match[0], target_account,
-                                            match_id, match_metadata_name)
+
+                            if match_metadata:
+                                metadata_update(txn, posting, match_id, match_metadata_name)
+                                metadata_update(match[1], match[0], match_id, match_metadata_name)
 
                             if link_transactions:
                                 transaction_update(txn, match_id, link_prefix)
