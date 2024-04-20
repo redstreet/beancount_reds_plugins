@@ -190,6 +190,7 @@ def account_replace(txn, posting, new_account):
     txn.postings.remove(posting)
     txn.postings.append(new_posting)
 
+
 def metadata_update(txn, posting, match_id, matching_id_string):
     if match_id and matching_id_string:
         if posting.meta:
@@ -197,6 +198,7 @@ def metadata_update(txn, posting, match_id, matching_id_string):
             posting.meta.update({matching_id_string: match_id})
         else:
             posting.meta = {matching_id_string: match_id}
+
 
 def transaction_update(txn, match_id, link_prefix):
     if match_id and link_prefix:

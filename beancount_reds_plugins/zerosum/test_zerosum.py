@@ -396,7 +396,6 @@ class TestUnrealized(unittest.TestCase):
         self.assertFalse(
             any(link.startswith("ZSM") for link in (matched["Bank account"].links & matched["401k statement"].links)))
 
-
     @loader.load_doc()
     def test_metadata_independent_from_linking(self, entries, _, options_map):
         """
@@ -421,7 +420,8 @@ class TestUnrealized(unittest.TestCase):
         """
         new_entries, _ = zerosum.zerosum(
             entries, options_map,
-            config[:-2] + """'match_metadata': True,\n'match_metadata_name': 'MATCH',\n'link_transactions': False,\n'link_prefix': 'ZSM'\n}""")
+            config[:-2] + """'match_metadata': True,\n'match_metadata_name': 'MATCH',\n
+            'link_transactions': False,\n'link_prefix': 'ZSM'\n}""")
 
         matched = dict(
             [(m.narration, m) for m in
@@ -435,7 +435,6 @@ class TestUnrealized(unittest.TestCase):
 
         for _, m in matched.items():
             self.assertFalse(any(link.startswith("ZSM") for link in m.links))
-
 
     @loader.load_doc()
     def test_linking_independent_from_metadata(self, entries, _, options_map):
@@ -461,8 +460,8 @@ class TestUnrealized(unittest.TestCase):
         """
         new_entries, _ = zerosum.zerosum(
             entries, options_map,
-            config[:-2] + """'match_metadata': False,\n'match_metadata_name': 'MATCH',\n'link_transactions': True,\n'link_prefix': 'ZSM'\n}""")
-
+            config[:-2] + """'match_metadata': False,\n'match_metadata_name': 'MATCH',\n
+            'link_transactions': True,\n'link_prefix': 'ZSM'\n}""")
 
         matched = dict(
             [(m.narration, m) for m in
