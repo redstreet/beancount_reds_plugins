@@ -3,9 +3,10 @@
 from ast import literal_eval
 import copy
 import datetime
-import time
-import string
 import random
+import string
+import sys
+import time
 from beancount.core import data
 from beancount_reds_plugins.common import common
 
@@ -48,7 +49,8 @@ def build_config(config):
     if config:
         holding_accts = literal_eval(config)
     if not holding_accts:
-        print("Using default config")
+        # print to stderr
+        print("Using default config", file=sys.stderr)
         holding_accts = {
                 'Expenses': {'earlier': 'Liabilities:Hold:Expenses', 'later': 'Assets:Hold:Expenses'},
                 'Income':   {'earlier': 'Assets:Hold:Income', 'later': 'Liabilities:Hold:Income'},
