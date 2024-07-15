@@ -16,4 +16,4 @@ beancount == 2.3.5
 python_dateutil == 2.8.1
 
 # beancount_reds_plugins/setup.py: 2
-setuptools == 65.5.1
+setuptools == 70.0.0
