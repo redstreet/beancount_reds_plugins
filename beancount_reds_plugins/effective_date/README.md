@@ -2,9 +2,12 @@ Effective dates plugin for Beancount
 ------------------------------------
 
 Double entry bookkeeping requires each transaction to occur instantaneously in time. In
-Beancount, that translates to each transaction occurring on a single date. However, it is
-occasionally useful to view different legs of a transaction occurring across difference
-periods of time. For example, consider:
+Beancount, that means each transaction must occur on a single date. However, it is
+occasionally useful to view different legs (postings) of a transaction as occurring
+across different dates. Booking a payment to a different date from its associated
+expenses, is one common use case.
+
+For example, consider:
 
 ````
 2014-12-15 * "Annual Insurance payment for 2015"
@@ -51,7 +54,7 @@ gets rewritten into:
     Expenses:Insurance
 ````
 
-The plugin also allows for legs to occur on multiple different dates. For example:
+The plugin allows for postings to occur on multiple different dates. For example:
 
 ````
 2015-02-01 * "Car insurance: 3 months"
