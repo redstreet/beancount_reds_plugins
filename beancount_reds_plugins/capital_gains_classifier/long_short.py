@@ -56,7 +56,7 @@ def long_short(entries, options_map, config):  # noqa: C901
         return contains_generic(entry) and not contains_shortlong_postings(entry)
 
     def reductions(entry):
-        return [p for p in entry.postings if (p.cost and p.units.number and p.price)]
+        return [p for p in entry.postings if (p.cost and p.units.number and p.price != None)]
 
     def sale_type(p, entry_date):
         diff = relativedelta.relativedelta(entry_date, p.cost.date)
@@ -73,6 +73,8 @@ def long_short(entries, options_map, config):  # noqa: C901
         if isinstance(entry, data.Transaction) and is_interesting_entry(entry):
             rewrite_count_matches += 1
             sale_types = [sale_type(p, entry.date) for p in reductions(entry)]
+            if not sale_types:
+                continue
             short_gains = sum(s[1] for s in sale_types if s[0] is False)
             long_gains = sum(s[1] for s in sale_types) - short_gains
 
