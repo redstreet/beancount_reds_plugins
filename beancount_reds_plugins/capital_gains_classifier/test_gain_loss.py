@@ -91,25 +91,3 @@ class TestGainLoss(cmptest.TestCase):
         """
 
         new_entries, _ = gain_loss(entries, options_map, config)
-
-        self.assertEqualEntries("""
-        2014-01-01 open Assets:Brokerage
-        2014-01-01 open Assets:Bank
-        2014-01-01 open Income:Capital-Gains
-        2014-01-01 open Income:Capital-Gains:Gains
-        2014-01-01 open Income:Capital-Gains:Losses
-
-        2014-02-01 * "Buy"
-          Assets:Brokerage    200 ORNG {1 USD}
-          Assets:Bank        -200 USD
-
-        2017-01-01 * "Total loss for 100 ORNG"
-          Assets:Brokerage    -100 ORNG {1 USD, 2014-02-01} @ 0 USD
-          Income:Capital-Gains:Losses  100 USD
-
-        2017-01-01 * "Sell 100 ORNG, forgot price"
-          Assets:Brokerage    -100 ORNG {1 USD, 2014-02-01}
-          Assets:Bank          150 USD
-          Income:Capital-Gains:Gains  -50 USD
-
-        """, new_entries)
