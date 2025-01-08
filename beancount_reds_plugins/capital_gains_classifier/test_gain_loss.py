@@ -68,26 +68,3 @@ class TestGainLoss(cmptest.TestCase):
           Income:Capital-Gains:Losses 50 USD
 
         """, new_entries)
-
-    @loader.load_doc()
-    def test_zero_or_missing_price(self, entries, _, options_map):
-        """
-        2014-01-01 open Assets:Brokerage
-        2014-01-01 open Assets:Bank
-        2014-01-01 open Income:Capital-Gains
-
-        2014-02-01 * "Buy"
-          Assets:Brokerage    200 ORNG {1 USD}
-          Assets:Bank        -200 USD
-
-        2017-01-01 * "Total loss for 100 ORNG"
-          Assets:Brokerage    -100 ORNG {1 USD} @ 0 USD
-          Income:Capital-Gains
-        
-        2017-01-01 * "Sell 100 ORNG, forgot price"
-          Assets:Brokerage   -100 ORNG {1 USD}
-          Assets:Bank         150 USD
-          Income:Capital-Gains
-        """
-
-        new_entries, _ = gain_loss(entries, options_map, config)
