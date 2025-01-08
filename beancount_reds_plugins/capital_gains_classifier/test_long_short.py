@@ -302,3 +302,46 @@ class TestLongShort(cmptest.TestCase):
           Assets:Bank         -50 USD
           Income:Capital-Gains:Long -50.00 USD
         """, new_entries)
+
+    @loader.load_doc()
+    def test_zero_missing_price(self, entries, _, options_map):
+        """
+        2014-01-01 open Assets:Brokerage
+        2014-01-01 open Assets:Bank
+        2014-01-01 open Income:Capital-Gains
+
+        2014-02-01 * "Buy"
+          Assets:Brokerage    100 ORNG {1 USD}
+          Assets:Bank        -100 USD
+
+        2016-03-01 * "Sell at complete loss"
+          Assets:Brokerage   -50 ORNG {1 USD} @ 0 USD
+          Income:Capital-Gains
+
+        2016-03-01 * "Sell but forgot price"
+          Assets:Brokerage   -50 ORNG {1 USD}
+          Assets:Bank 100 USD
+          Income:Capital-Gains
+        """
+        new_entries, _ = long_short(entries, options_map, config)
+
+        self.assertEqualEntries("""
+        2014-01-01 open Assets:Brokerage
+        2014-01-01 open Assets:Bank
+        2014-01-01 open Income:Capital-Gains
+        2014-01-01 open Income:Capital-Gains:Long
+
+        2014-02-01 * "Buy"
+          Assets:Brokerage    100 ORNG {1 USD}
+          Assets:Bank        -100 USD
+        
+        2016-03-01 * "Sell at complete loss"
+          Assets:Brokerage           -50 ORNG {1 USD, 2014-02-01} @ 0 USD
+          Income:Capital-Gains:Long   50 USD
+
+        2016-03-01 * "Sell but forgot price"
+          Assets:Brokerage      -50 ORNG {1 USD, 2014-02-01}
+          Assets:Bank           100 USD
+          Income:Capital-Gains  -50 USD
+
+        """, new_entries)
