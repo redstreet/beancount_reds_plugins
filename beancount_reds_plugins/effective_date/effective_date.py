@@ -21,6 +21,7 @@ DEFAULT_FORMATS = {
     'DATE_FORMAT': '%Y%m%d',    # %y to omit century
     'RANDOM_LEN': 3,
 }
+HEX_BASE = 16
 
 
 def has_valid_effective_date(posting):
@@ -81,16 +82,17 @@ def build_config(config):
     def hexformat(i):
         return hex(i)[2:].zfill(formats['RANDOM_LEN'])
 
-    rand = rand_counter(16**formats['RANDOM_LEN'] + 1, hexformat)
-    return holding_accts, formats, rand
+    return holding_accts, formats, hexformat
 
 
-def make_link(entry_date, formats, rand):
+def make_link(entry_date, formats, hexformat, rand_gens):
     date_str = entry_date.strftime(formats['DATE_FORMAT'])
-    # # Old method: for testing:
-    # rand_str = ''.join(random.choice(
-    #     string.ascii_uppercase) for i in range(3))
-    rand_str = next(rand)
+    # Fail collision test: rand_str = ''.join(random.choice(string.ascii_uppercase) for i in range(3))
+    if entry_date not in rand_gens:
+        rand_gens[entry_date] = rand_counter(
+            HEX_BASE**formats['RANDOM_LEN'], hexformat)
+    rand_str = next(rand_gens[entry_date])
+
     link = formats['LINK_FORMAT'].format(date=date_str, rand=rand_str)
     return link
 
@@ -110,8 +112,8 @@ def effective_date(entries, options_map, config):
     """
     start_time = time.time()
     errors = []
-    holding_accts, formats, rand = build_config(config)
-
+    holding_accts, formats, hexformat = build_config(config)
+    rand_gens = {}
     interesting_entries = []
     filtered_entries = []
     new_accounts = set()
@@ -131,7 +133,7 @@ def effective_date(entries, options_map, config):
     # entries, and thus links each set of effective date entries
     interesting_entries_linked = []
     for entry in interesting_entries:
-        link = make_link(entry.date, formats, rand)
+        link = make_link(entry.date, formats, hexformat, rand_gens)
         new_entry = entry._replace(links=(entry.links or set()) | set([link]))
         interesting_entries_linked.append(new_entry)
 
