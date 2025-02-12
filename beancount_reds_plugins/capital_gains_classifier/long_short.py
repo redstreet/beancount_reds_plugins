@@ -59,7 +59,7 @@ def long_short(entries, options_map, config):  # noqa: C901
         # If the entry doesn't contain a price (p.price == None), it will remain in the parent
         # (:Capital-Gains) account, which can make it a pain to debug. At least warn the user
         # somehow, or collect these in a separate error account
-        return [p for p in entry.postings if (p.cost and p.units.number and p.price != None)]
+        return [p for p in entry.postings if (p.cost and p.units.number and p.price is not None)]
 
     def sale_type(p, entry_date):
         diff = relativedelta.relativedelta(entry_date, p.cost.date)

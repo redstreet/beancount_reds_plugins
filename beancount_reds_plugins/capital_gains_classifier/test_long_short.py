@@ -334,7 +334,7 @@ class TestLongShort(cmptest.TestCase):
         2014-02-01 * "Buy"
           Assets:Brokerage    100 ORNG {1 USD}
           Assets:Bank        -100 USD
-        
+
         2016-03-01 * "Sell at complete loss"
           Assets:Brokerage           -50 ORNG {1 USD, 2014-02-01} @ 0 USD
           Income:Capital-Gains:Long   50 USD
