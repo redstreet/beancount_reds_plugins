@@ -88,10 +88,10 @@ def build_config(config):
 def make_link(entry_date, formats, hexformat, rand_gens):
     date_str = entry_date.strftime(formats['DATE_FORMAT'])
     # Fail collision test: rand_str = ''.join(random.choice(string.ascii_uppercase) for i in range(3))
-    if entry_date not in rand_gens:
-        rand_gens[entry_date] = rand_counter(
+    if date_str not in rand_gens:
+        rand_gens[date_str] = rand_counter(
             HEX_BASE**formats['RANDOM_LEN'], hexformat)
-    rand_str = next(rand_gens[entry_date])
+    rand_str = next(rand_gens[date_str])
 
     link = formats['LINK_FORMAT'].format(date=date_str, rand=rand_str)
     return link
