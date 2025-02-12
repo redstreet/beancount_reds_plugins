@@ -15,7 +15,7 @@ config = """{
    }"""
 
 
-class TestLongShort(cmptest.TestCase):
+class TestGainLoss(cmptest.TestCase):
 
     def test_empty_entries(self):
         entries, _ = gain_loss([], options.OPTIONS_DEFAULTS.copy(), config)
