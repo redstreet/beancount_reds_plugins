@@ -56,6 +56,9 @@ def long_short(entries, options_map, config):  # noqa: C901
         return contains_generic(entry) and not contains_shortlong_postings(entry)
 
     def reductions(entry):
+        # If the entry doesn't contain a price (p.price == None), it will remain in the parent
+        # (:Capital-Gains) account, which can make it a pain to debug. At least warn the user
+        # somehow, or collect these in a separate error account
         return [p for p in entry.postings if (p.cost and p.units.number and p.price != None)]
 
     def sale_type(p, entry_date):
