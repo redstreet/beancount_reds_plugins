@@ -18,7 +18,7 @@ __plugins__ = ['effective_date']
 
 DEFAULT_FORMATS = {
     'LINK_FORMAT': 'edate-{date}-{rand}',
-    'DATE_FORMAT': '%Y%m%d',    # %y to omit century
+    'DATE_FORMAT': '%y%m%d',
     'RANDOM_LEN': 3,
 }
 HEX_BASE = 16
