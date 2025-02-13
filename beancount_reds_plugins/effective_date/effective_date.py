@@ -9,6 +9,7 @@ import sys
 import time
 from beancount.core import data
 from beancount_reds_plugins.common import common
+from beancount_reds_plugins.effective_date.link_maker import LinkMaker
 
 DEBUG = 0
 
@@ -16,7 +17,11 @@ __plugins__ = ['effective_date']
 # to enable the older transaction-level hacky plugin, now renamed to effective_date_transaction
 # __plugins__ = ['effective_date', 'effective_date_transaction']
 
-LINK_FORMAT = 'edate-{date}-{random}'
+DEFAULT_FORMATS = {
+    'LINK_FORMAT': 'edate-{date}-{rand}',
+    'DATE_FORMAT': '%y%m%d',
+    'RANDOM_LEN': 3,
+}
 
 
 def has_valid_effective_date(posting):
@@ -45,9 +50,15 @@ def create_new_effective_date_entry(entry, date, hold_posting, original_posting)
 
 
 def build_config(config):
+    # Config may contain more than just accounts, but the non-account
+    # configurations are not valid account names.
     holding_accts = {}
+    formats = {}
     if config:
         holding_accts = literal_eval(config)
+        formats = {k: holding_accts.pop(k, None) or v
+                   for k, v in DEFAULT_FORMATS.items()}
+
     if not holding_accts:
         if DEBUG:
             print("effective_date: Using default config", file=sys.stderr)
@@ -55,7 +66,9 @@ def build_config(config):
                 'Expenses': {'earlier': 'Liabilities:Hold:Expenses', 'later': 'Assets:Hold:Expenses'},
                 'Income':   {'earlier': 'Assets:Hold:Income', 'later': 'Liabilities:Hold:Income'},
                 }
-    return holding_accts
+        formats = DEFAULT_FORMATS | formats
+
+    return holding_accts, formats
 
 
 def effective_date(entries, options_map, config):
@@ -73,7 +86,8 @@ def effective_date(entries, options_map, config):
     """
     start_time = time.time()
     errors = []
-    holding_accts = build_config(config)
+    holding_accts, formats = build_config(config)
+    link_maker = LinkMaker(formats)
 
     interesting_entries = []
     filtered_entries = []
@@ -94,9 +108,7 @@ def effective_date(entries, options_map, config):
     # entries, and thus links each set of effective date entries
     interesting_entries_linked = []
     for entry in interesting_entries:
-        rand_string = ''.join(random.choice(string.ascii_lowercase) for i in range(3))
-        date = str(entry.date).replace('-', '')[2:]
-        link = LINK_FORMAT.format(date=str(date), random=rand_string)
+        link = link_maker.get(entry.date)
         new_entry = entry._replace(links=(entry.links or set()) | set([link]))
         interesting_entries_linked.append(new_entry)
 
@@ -261,7 +273,7 @@ def effective_date_transaction(entries, options_map, config):
 
         if found:
             rand_string = ''.join(random.choice(string.ascii_uppercase) for i in range(5))
-            link = LINK_FORMAT.format(rand_string)
+            link = DEFAULT_FORMATS['LINK_FORMAT'].format(rand_string)
             # modified_entry = data.entry_replace(entry, postings=modified_entry_postings,
             #                                     links=(entry.links or set()) | set([link]))
             modified_entry = entry._replace(postings=modified_entry_postings,
