@@ -173,7 +173,7 @@ class TestEffectiveDate(unittest.TestCase):
                     tf.write(txn)
             tf.close()
 
-            entries, _, options_map = loader.load_file('/tmp/test_data.txt')
+            entries, _, options_map = loader.load_file(tf.name)
             new_entries, _ = effective_date(entries, options_map, None)
 
             link_counts = {}
