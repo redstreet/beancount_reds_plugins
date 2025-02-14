@@ -1,12 +1,12 @@
-LINK_FORMAT = 'edate-{date}-{seq}'
 PREFIX_LEN = 2
 
 
 class LinkMaker():
-    def __init__(self, formats):
-        self.date_format = formats['DATE_FORMAT']
-        self.base = int(formats['SEQUENCE_BASE'])
-        self.zfill = int(formats['SEQUENCE_ZFILL'])
+    def __init__(self, link_format, base, date_format=None, zfill=None):
+        self.link_format = link_format
+        self.base = int(base)
+        self.date_format = date_format
+        self.zfill = int(zfill)
         self.counters = {}
 
     def format(self, x):
@@ -35,5 +35,5 @@ class LinkMaker():
         count = self.counter(date_str)
         seq = self.format(count)
 
-        link = LINK_FORMAT.format(date=date_str, seq=seq)
+        link = self.link_format.format(date=date_str, seq=seq)
         return link

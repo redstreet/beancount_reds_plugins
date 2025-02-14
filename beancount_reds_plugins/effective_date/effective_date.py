@@ -18,10 +18,15 @@ __plugins__ = ['effective_date']
 # to enable the older transaction-level hacky plugin, now renamed to effective_date_transaction
 # __plugins__ = ['effective_date', 'effective_date_transaction']
 
-DEFAULT_FORMATS = {
-    'DATE_FORMAT': '%y%m%d',
-    'SEQUENCE_BASE': 16,
-    'SEQUENCE_ZFILL': 0,
+LINK_FORMAT = 'edate-{date}-{seq}'
+DEFAULTS = {
+    'date_format': '%y%m%d',
+    'base': 16,
+    'zfill': 0,
+    'holding_accts': {
+        'Expenses': {'earlier': 'Liabilities:Hold:Expenses', 'later': 'Assets:Hold:Expenses'},
+        'Income':   {'earlier': 'Assets:Hold:Income', 'later': 'Liabilities:Hold:Income'},
+    }
 }
 
 
@@ -50,28 +55,6 @@ def create_new_effective_date_entry(entry, date, hold_posting, original_posting)
     return effective_date_entry
 
 
-def build_config(config):
-    # Config may contain more than just accounts, but the non-account
-    # configurations are not valid account names.
-    holding_accts = {}
-    formats = {}
-    if config:
-        holding_accts = literal_eval(config)
-        formats = {k: holding_accts.pop(k, None) or v
-                   for k, v in DEFAULT_FORMATS.items()}
-
-    if not holding_accts:
-        if DEBUG:
-            print("effective_date: Using default config", file=sys.stderr)
-        holding_accts = {
-                'Expenses': {'earlier': 'Liabilities:Hold:Expenses', 'later': 'Assets:Hold:Expenses'},
-                'Income':   {'earlier': 'Assets:Hold:Income', 'later': 'Liabilities:Hold:Income'},
-                }
-        formats = DEFAULT_FORMATS | formats
-
-    return holding_accts, formats
-
-
 def effective_date(entries, options_map, config):
     """Effective dates
 
@@ -87,9 +70,12 @@ def effective_date(entries, options_map, config):
     """
     start_time = time.time()
     errors = []
-    holding_accts, formats = build_config(config)
-    link_maker = LinkMaker(formats)
-
+    if DEBUG and 'holding_accts' not in literal_eval(config).keys():
+        print("effective_date: Using default holding accounts",
+              file=sys.stderr)
+    parsed_cfg = DEFAULTS | (literal_eval(config) if config else {})
+    link_maker = LinkMaker(LINK_FORMAT, parsed_cfg['base'],
+                           parsed_cfg['date_format'], parsed_cfg['zfill'])
     interesting_entries = []
     filtered_entries = []
     new_accounts = set()
@@ -121,14 +107,14 @@ def effective_date(entries, options_map, config):
                 modified_entry_postings += [posting]
             else:
                 found_acct = ''
-                for acct in holding_accts:
+                for acct in parsed_cfg['holding_accts']:
                     if posting.account.startswith(acct):
                         found_acct = acct
 
                 # find earlier or later (is this necessary?)
-                holding_account = holding_accts[found_acct]['earlier']
+                holding_account = parsed_cfg['holding_accts'][found_acct]['earlier']
                 if posting.meta['effective_date'] > entry.date:
-                    holding_account = holding_accts[found_acct]['later']
+                    holding_account = parsed_cfg['holding_accts'][found_acct]['later']
 
                 # Replace posting in original entry with holding account
                 new_posting = posting._replace(account=posting.account.replace(found_acct, holding_account))
