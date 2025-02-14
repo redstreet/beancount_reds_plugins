@@ -19,12 +19,9 @@ __plugins__ = ['effective_date']
 # __plugins__ = ['effective_date', 'effective_date_transaction']
 
 DEFAULT_FORMATS = {
-    'LINK_FORMAT': 'edate-{date}-{seq}',
     'DATE_FORMAT': '%y%m%d',
     'SEQUENCE_BASE': 16,
-    'SEQUENCE_CASE': 'lower',
     'SEQUENCE_ZFILL': 0,
-
 }
 
 
