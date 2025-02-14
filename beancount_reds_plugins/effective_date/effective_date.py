@@ -1,9 +1,7 @@
 """Beancount plugin to implement per-posting effective dates. See README.md for more."""
 
-from ast import literal_eval
 import copy
 import datetime
-import sys
 import time
 from beancount.core import data
 from beancount_reds_plugins.common import common
@@ -17,11 +15,12 @@ __plugins__ = ['effective_date']
 # to enable the older transaction-level hacky plugin, now renamed to effective_date_transaction
 # __plugins__ = ['effective_date', 'effective_date_transaction']
 
-LINK_FORMAT = 'edate-{date}-{seq}'
+
 DEFAULTS = {
-    'date_format': '%y%m%d',
-    'base': 16,
-    'zfill': 0,
+    'link_base': 16,
+    'link_zfill': 0,
+    'link_prefix': 'edate-',
+    'date_format': '%y%m%d-',
     'holding_accts': {
         'Expenses': {'earlier': 'Liabilities:Hold:Expenses', 'later': 'Assets:Hold:Expenses'},
         'Income':   {'earlier': 'Assets:Hold:Income', 'later': 'Liabilities:Hold:Income'},
@@ -69,13 +68,14 @@ def effective_date(entries, options_map, config):
     """
     start_time = time.time()
     errors = []
-    if DEBUG and 'holding_accts' not in literal_eval(config).keys():
-        print("effective_date: Using default holding accounts",
-              file=sys.stderr)
-    parsed_cfg = DEFAULTS | (literal_eval(config) if config else {})
-    link_maker = common.LinkMaker(
-        LINK_FORMAT, parsed_cfg['base'],
-        parsed_cfg['date_format'], parsed_cfg['zfill'])
+    if DEBUG:
+        warn_args = {'warn_params': ['holding_accts'], 'warn_name': 'effective_date'}
+    else:
+        warn_args = {}
+    parsed_cfg = common.parse_config(defaults=DEFAULTS, config=config, **warn_args)
+    link_maker = common.FormattedUIDs(
+        parsed_cfg['link_base'], parsed_cfg['link_zfill'],
+        parsed_cfg['link_prefix'], parsed_cfg['date_format'])
     interesting_entries = []
     filtered_entries = []
     new_accounts = set()

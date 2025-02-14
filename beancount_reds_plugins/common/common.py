@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Common code for beancount_reds_plugins"""
 
+from ast import literal_eval
+import sys
+
 from beancount.core import data
 from beancount.core import getters
 
@@ -25,9 +28,20 @@ def create_open_directives(new_accounts, entries,
     return new_open_entries
 
 
-class LinkMaker():
-    def __init__(self, link_format, base, date_format='', zfill=0):
-        self.link_format = link_format
+def parse_config(*, defaults, config, warn_params=[], warn_name=""):
+    config_obj = literal_eval(config) if config else {}
+
+    for param in warn_params:
+        if param not in config_obj:
+            print(f"{warn_name}: Using default {param}", file=sys.stderr)
+
+    parsed = defaults | config_obj
+    return parsed
+
+
+class FormattedUIDs():
+    def __init__(self, base, zfill=0, prefix='', date_format=''):
+        self.prefix = prefix
         self.base = int(base)
         self.date_format = date_format
         self.zfill = int(zfill)
@@ -46,18 +60,17 @@ class LinkMaker():
         filled = stripped.zfill(self.zfill)
         return filled
 
-    def counter(self, key):
+    def counter(self, key=''):
         count = self.counters.get(key, 0)
         self.counters[key] = count + 1
         return count
 
-    def get(self, entry_date):
-        date_str = entry_date.strftime(self.date_format)
+    def get(self, entry_date=None):
+        date_str = entry_date.strftime(self.date_format) if entry_date else ''
         # The date format may be set to only a year or just an empty string,
         # so, to guarantee uniqueness, the counters must be keyed by date_str,
         # not the date value.
         count = self.counter(date_str)
         seq = self.format(count)
-
-        link = self.link_format.format(date=date_str, seq=seq)
+        link = self.prefix + date_str + seq
         return link
