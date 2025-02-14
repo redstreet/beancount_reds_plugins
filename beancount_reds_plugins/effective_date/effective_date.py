@@ -9,7 +9,6 @@ from beancount.core import data
 from beancount_reds_plugins.common import common
 from beancount_reds_plugins.effective_date.legacy_effective_date_transaction \
     import effective_date_transaction
-from beancount_reds_plugins.effective_date.link_maker import LinkMaker
 
 
 DEBUG = 0
@@ -74,8 +73,9 @@ def effective_date(entries, options_map, config):
         print("effective_date: Using default holding accounts",
               file=sys.stderr)
     parsed_cfg = DEFAULTS | (literal_eval(config) if config else {})
-    link_maker = LinkMaker(LINK_FORMAT, parsed_cfg['base'],
-                           parsed_cfg['date_format'], parsed_cfg['zfill'])
+    link_maker = common.LinkMaker(
+        LINK_FORMAT, parsed_cfg['base'],
+        parsed_cfg['date_format'], parsed_cfg['zfill'])
     interesting_entries = []
     filtered_entries = []
     new_accounts = set()
