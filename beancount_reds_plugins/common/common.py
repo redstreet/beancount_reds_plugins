@@ -26,7 +26,7 @@ def create_open_directives(new_accounts, entries,
 
 
 class LinkMaker():
-    def __init__(self, link_format, base, date_format=None, zfill=None):
+    def __init__(self, link_format, base, date_format='', zfill=0):
         self.link_format = link_format
         self.base = int(base)
         self.date_format = date_format
