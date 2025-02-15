@@ -5,14 +5,13 @@ import datetime
 import time
 from beancount.core import data
 from beancount_reds_plugins.common import common
-from beancount_reds_plugins.effective_date.legacy_effective_date_transaction \
-    import effective_date_transaction
 
 
 DEBUG = 0
 
 __plugins__ = ['effective_date']
 # to enable the older transaction-level hacky plugin, now renamed to effective_date_transaction
+# from beancount_reds_plugins.effective_date.legacy_effective_date_transaction import effective_date_transaction
 # __plugins__ = ['effective_date', 'effective_date_transaction']
 
 
