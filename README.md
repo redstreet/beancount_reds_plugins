@@ -38,3 +38,14 @@ plugin "beancount_reds_plugins.rename_accounts.rename_accounts" "{
  }"
 ```
 See README.md in individual directories for how to configure each plugin.
+
+### Disabling plugins during the import process
+
+In general, no plugins should run on the source files that are passed to
+`smart_importer`. Here's [an article](https://reds-rants.netlify.app/personal-finance/automatically-categorizing-postings/)
+that shows how.
+
+In short (this is for `zsh`, adapt to your shell as needed):
+```
+bean-extract my.import -f <(echo 'plugin "beancount.plugins.auto_accounts"'; cat ${INGEST_ROOT}/../source/*) $file
+```
