@@ -1,225 +1,177 @@
 # Changelog
 
+## 0.4.0
+- feature updates:
+  - feat: Add 'link_metadata' config option (e38d0c7, 2024-04-19)
+  - feat: Add 'match_metadata_name' config (4711c18, 2024-04-19)
+  - feat: Add match metadata to matched postings (94f8560, 2024-02-19)
+  - feat(minor): renamed opengroup default config (cac32e0, 2023-04-13)
 
-## 0.3.0 (2023-01-24)
+- fixes
+  - fix: #28, downgrade "using default config" to a DEBUG message (9e23e8d, 2024-06-12)
+  - fix: ensure independence of metadata / linking config (#27) (8867cf4, 2024-04-20)
+  - fix(opengroup): gracefully continue if a rule doesn't exist (f52b1b7, 2023-04-14)
+  - fix: print to stderr, not stdout, from effective_date #28 (bcaa58c, 2024-06-12)
+  - misc (3ebbb2f, 2023-03-15)
 
+- several refactor and doc updates
 
-### New
-- autoclose_tree: new plugin automatically closes all of an account's descendants when
-  an account is closed. [Red S]
-- opengroup (experimental): new plugin to automatically open sets of accounts. [Red S]
+## 0.3.0
+- doc: release CHANGELOG (74e852c, 2023-01-24)
+- ci: gitchangelog (7afd1b0, 2023-01-24)
+- doc: opengroup (2f541d5, 2023-01-24)
+- build(deps): bump setuptools from 45.2.0 to 65.5.1 (#22) (a54af1b, 2022-12-27)
+- fix (opengroup): regex fix, add closegroup (392f915, 2022-10-23)
+- doc: opengroup README.md (82a282d, 2022-10-23)
+- feat (opengroup): now configurable (c8a76b8, 2022-10-23)
+- refactor: rename autoopen to opengroup (6c66f26, 2022-10-22)
+- ci: test fix (77f9c5f, 2022-10-22)
+- fix (autoopen): remove accounts that need a different booking method (e54b0e0, 2022-10-21)
+- fix (autoopen): ticker string was being pulverized into a list (89d2523, 2022-10-21)
+- feat (autoopen): pick up default currency from options_map (324fad1, 2022-10-21)
+- dev: add hardcoded cash+expenses rule to autoopen (0d55538, 2022-10-17)
+- ci: flake (ec3e68d, 2022-10-15)
+- refactor (autoopen): a hardcoded fifo rule (4164a86, 2022-10-15)
+- feat(autoopen): accept and apply rules (7aef2c8, 2022-09-28)
+- feat: autoopen (experimental): new plugin to open sets of accounts (39d5b4a, 2022-09-28)
+- feat(rename_accounts): accept regexes for renames (#20) (7f873fb, 2022-08-26)
+- fix: #19 error when used in conjunction with beancount.plugins.auto_accounts (ac64b95, 2022-08-24)
+- rename_accounts: Copy only renamed directives for performance (#18) (ede7830, 2022-08-23)
+- rename_accounts: Support renaming within all directives, not just Transaction (#17) (fa34b57, 2022-08-22)
+- ci: flake (f89b14b, 2022-08-22)
+- doc(autoclose_tree): plugin order (0a2704b, 2022-08-22)
+- feat(autoclose_tree): test close descendends of unopened parent (649461e, 2022-08-22)
+- fix(autoclose_tree): remove empty config (25b48e9, 2022-08-22)
+- fix(autoclose_tree): don't match substrings, only subaccounts (def7ffd, 2022-08-22)
+- refactor: clean up (32fc1dd, 2022-08-22)
+- ci: flake (2e84918, 2022-08-22)
+- feat(major): add autoclose_tree plugin (99d1717, 2022-08-22)
+- doc: gitchangelog exclude 'feat' (c5d07e9, 2022-06-11)
+- doc: CHANGELOG (d200cf3, 2022-06-10)
+- doc: add changelog, gitchangelog config (50169ee, 2022-06-09)
+- flake (645f35b, 2022-05-12)
+- pythonpackage (1f071fb, 2022-05-12)
+- rename README (68816fb, 2022-05-03)
+- rename README (1636ee6, 2022-04-30)
+- long_short: use tolerance to determine whether to scale (f98cd6e, 2022-04-29)
+- beta (1e6283b, 2022-04-29)
 
-### Improvements
-- rename_accounts: accept regexes for renames (#20) [Ankur Dave]
-- rename_accounts: Support renaming within all directives, not just Transaction (#17) [Ankur Dave]
-- rename_accounts: Copy only renamed directives for performance (#18) [Ankur Dave]
-- long_short: use tolerance to determine whether to scale. [Red S]
+## 0.2.0
+- main readme (6f3b2db, 2022-04-29)
+- long_short: doc update (bdbe04a, 2022-04-29)
+- long_short now works for short positions (1d8412a, 2022-04-29)
+- long_short: refactor for clarity (af682ba, 2022-04-29)
+- capgains README (fd52148, 2022-04-29)
+- long_short: counters (5fee925, 2022-04-29)
+- rename_accounts: fixed loop code (aa76b78, 2022-04-29)
+- gain_loss: re.compile (0475244, 2022-04-29)
+- gain_loss: cleanup, refactor, add tests; long_short: new config format (76ef1b8, 2022-04-29)
+- code doc/comments (da4304f, 2022-04-28)
+- add tests and clean up gain_loss (f8b415f, 2022-04-28)
+- clarify long_short README (23bf3a3, 2022-04-28)
+- test_long_short: better test case (61e10ee, 2022-04-28)
+- long_short: add test case for bbc558c, year calculation bug (3e41771, 2022-04-28)
+- Create python-package.yml; flake8, requirements.txt for pytest (7b9d7d3, 2022-04-27)
+- cleanup (8b7b10f, 2022-04-27)
+- main README (f0c854d, 2022-04-27)
+- test import paths (77d64ad, 2022-04-27)
+- refactor create_open_directives() (df56aa6, 2022-04-27)
+- rename capital_gains_classifier to gain_loss (9aa4f17, 2022-04-27)
+- long_short: cleanup (c9ba7f0, 2022-04-27)
+- long_short: year calculation bug (bbc558c, 2022-04-27)
+- long_short: doc + misc (44ac9f7, 2022-04-26)
+- Update README.md (cba3504, 2022-04-26)
+- misc (b35d083, 2022-04-26)
+- . (3bc0b5f, 2022-04-26)
+- fix sign bug (c6b1697, 2022-04-26)
+- long_short: fix for when other accounts like expense account exist (aa50025, 2022-04-26)
+- long_short doc (0c4cc65, 2022-04-26)
+- long_short: leap year fix (d3cf50d, 2022-04-26)
+- README example (a858aa9, 2022-04-26)
+- refactor (4bc6b67, 2022-04-26)
+- support pattern for generic (c0812b2, 2022-04-26)
+- long_short: test cases (b45975e, 2022-04-26)
+- capital gains long/short classifier (813667b, 2022-04-26)
+- capital gains long/short classifier (cc6226f, 2022-04-26)
+- Merge branch 'tbm-docs' (97ee20a, 2022-04-20)
+- Merge branch 'docs' of https://github.com/tbm/beancount_plugins_redstreet into tbm-docs (ffbc98b, 2022-04-20)
 
-### Fixes
-- #19 error when used in conjunction with beancount.plugins.auto_accounts. [Red S]
+## 0.1.1
+- flake (52d6576, 2021-02-05)
+- zerosum: add config option "tolerance" (#16) (b874459, 2021-02-05)
+- add unittests from @jaki (f410b45, 2021-02-03)
+- style: clarify which txns shouldn't error (c67c28a, 2021-02-02)
+- Revert "style: add comments to clarify postings match" (d55c72d, 2021-02-02)
+- test: make the lookalike test more accurate (dfef8df, 2021-02-02)
+- test: test lookalike postings (ae400a2, 2021-02-02)
+- style: rm extra space before - (0f875d1, 2021-02-02)
+- style: add comments to clarify postings match (5ac8bab, 2021-02-02)
+- style: make date uniform jan 1 (caf96d3, 2021-02-02)
+- test: add case where both postings match in one tx (2152b1f, 2021-02-02)
+- fix: don't match with the same exact posting (72396e1, 2021-02-02)
+- test: add failing test case with low-cost txn (a34292e, 2021-02-02)
+- add unit tests for zerosum; test for #15 (e0e0a8a, 2021-02-03)
+- add unittest for rename_accounts (0c14a5e, 2021-02-02)
+- Update path (08ed6d8, 2020-08-04)
+- Remove non-pip (af7d5c4, 2020-08-04)
+- Update zerosum-example.beancount (5a1474c, 2020-08-04)
 
-
-
-## 0.2.0 (2021-04-30)
-### New plugins
-- capital gains long/short classifier. [Red S]
-- capital gains gain/loss classifier [Red S]
-
-### Improvements
-- long_short: use tolerance to determine whether to scale. [Red S]
-- long_short now works for short positions. [Red S]
-- rename capital_gains_classifier to gain_loss. [Red S]
-
-### Fixes
-- rename_accounts: fixed loop code. [Red S]
-
-### Other
-- doc: add changelog, gitchangelog config. [Red S]
-- doc: readme. [Red S]
-- long_short: refactor for clarity. [Red S]
-- refactor: create_open_directives() [Red S]
-
-## 0.1.1 (2021-02-05)
-
-
-### Fixes
-
-- fix: don't match with the same exact posting. [Jason Kim]
-
-### Other
-
-- flake. [Red S]
-- zerosum: add config option "tolerance" (#16) [Jason Kim]
-
-  * style: s/Vsia/Visa/g
-
-  * style: trim trailing whitespace for two files
-
-  * test: add two new unit tests in prep for tolerance
-
-  In preparation of the "tolerance" config option feature, add two new
-  unit tests:
-
-  - `test_two_matched_below_epsilon`: demonstrate that two transactions
-    that logically shouldn't match can end up matching because they sum up
-    to be below epsilon (aka tolerance)
-  - `test_two_unmatched_above_epsilon`: prepare to demonstrate that two
-    transactions that logically shouldn't match can avoid matching if
-    epsilon (aka tolerance) is set low enough (this test should currently
-    fail because tolerance is too high!)
-
-  * feat: add epsilon_delta as config parameter
-
-  * style: S/epsilon_delta/tolerance/g
-
-  * style: s/TOLERANCE/DEFAULT_TOLERANCE/
-
-  * style: add trailing comma to config dict
-
-  * test: set tolerance to 0.0098
-
-  Set tolerance slightly lower so that `test_two_unmatched_above_epsilon`
-  lives up to its name and now passes.
-
-  * style: s/Visa/Green/
-- add unittests from @jaki. [Red S]
-- style: clarify which txns shouldn't error. [Jason Kim]
-- Revert "style: add comments to clarify postings match" [Jason Kim]
-
-  This reverts commit 1eb6edb1f415b263cf33e2cfc82ed3ec52138c70.
-- test: make the lookalike test more accurate. [Jason Kim]
-- test: test lookalike postings. [Jason Kim]
-
-  Make sure that lookalike postings aren't considered identical so that
-  a match is attempted.  In the code, this exercises `p is posting`.
-- style: rm extra space before - [Jason Kim]
-- style: add comments to clarify postings match. [Jason Kim]
-- style: make date uniform jan 1. [Jason Kim]
-- test: add case where both postings match in one tx. [Jason Kim]
-
-  Protect against regression by making sure that two distinct postings
-  within the same transaction can match.
-- test: add failing test case with low-cost txn. [Jason Kim]
-- add unit tests for zerosum; test for #15. [Red S]
-- add unittest for rename_accounts. [Red S]
-- Update path. [Red S]
-- Remove non-pip. [Red S]
-- Update zerosum-example.beancount. [Red S]
-
-## 0.1.0 (2020-05-04)
-
-
-### Other
-
-- Create pythonpublish.yml. [Red S]
-- readme updates for pypi. [Red S]
-- Redo dirs for PyPI. [Red S]
-- add new plugin: capital gains classifier (into gains/losses) [Red S]
-- Fix formatting issues in docs. [Martin Michlmayr]
-- Fix typos (#11) [Red S]
-- Merge pull request #10 from redstreet/eff_date_per_posting. [Red S]
-
-  Eff date per posting
-- cleanup. [Red S]
-- added human readable link (thanks justus pendleton for the suggestion) [Red S]
-- Merge pull request #9 from redstreet/eff_date_per_posting. [Red S]
-
-  add CHANGES.md
-- add CHANGES.md. [Red S]
-- Merge pull request #8 from redstreet/eff_date_per_posting. [Red S]
-
-  Effective date per posting
-- effective_date README update for per posting. [Red S]
-- add beancount links to link original and effective date transactions! [Red S]
-- add operating currency for fava. [Red S]
-- Disable old transaction-level hacky effective date. [Red S]
-- cleanup. [Red S]
-- effective_date example beancount source. [Red S]
-- gitignore. [Red S]
-- Test skeleton. [Red S]
-- Commented out debug prints. [Red S]
-- Add per posting effective date. [Red S]
-- Effective date: recognizing income earlier. [Red S]
-- Merge pull request #7 from redstreet/docs. [Red S]
-
-  drat. README title
-- drat. README title. [Red S]
-- Merge pull request #6 from redstreet/docs. [Red S]
-
-  more README updates
-- more README updates. [Red S]
-- Merge pull request #5 from redstreet/docs. [Red S]
-
-  add example to README
-- add example to README. [Red S]
-- Merge pull request #4 from redstreet/docs. [Red S]
-
-  Updated README.
-- Updated README. [Red S]
-- Merge branch 'zerosum_performance' [Red S]
-- Zerosum: minor refactoring and cleanup. [Red S]
-- Rename plugin can now do arbitrary renames. [Red S]
-- Merge pull request #3 from redstreet/zerosum_performance. [Red S]
-
-  Zerosum performance
-- Cleanup zerosum. [Red S]
-- Refactored zerosum for 4x-6x performance improvement. [Red S]
-
-  - Rewrote match finder: the previous match finder iterated through all
-  entries in the given account. Updated to match forward only and break
-  upon exceeding the date range (entry list is sorted by date by
-  beancount)
-
-  - Pre-build finding entries of interest so the entire set of entries is
-  iterated only once
-
-  - cprofile within DEBUG
-- Merge pull request #2 from wzyboy/zerosum-mark-unmatched. [Red S]
-- Flag transactions, but default off. [Zhuoyun Wei]
-- Fix TypeError when account_name_replace is not in config. [Zhuoyun Wei]
-- zerosum: Mark unmatched txn. [Zhuoyun Wei]
-- PEP8. [Zhuoyun Wei]
-- Print stats conditionally on DEBUG being set. [Red S]
-- README: cleanup and conversion to markdown. [Red S]
-- Merge branch 'master' of github.com:redstreet/beancount_plugins_redstreet. [Red S]
-- Merge branch 'master' of github.com:redstreet/beancount_plugins_redstreet. [Red S]
-- Merge pull request #1 from wzyboy/patch-1. [Red S]
-
-  Fix Markdown rendering.
-- Update README.md. [Zhuoyun Wei]
-- Add 'account_name_replace' option in config. [Red S]
-
-  Allows target account name for matched accounts to be skipped in the
-  config (specified as an empty string), and instead be constructed by
-  the specified string replacement
-- upstream changes. [Red S]
-- Added rename accounts plugin. [Red S]
-- update README. [Red S]
-- fixes to match upstream API changes (ref: beancount/2016-02-06) [Red S]
-- Reorganized directories. [Red S]
-- Added effective date plugin. [Red S]
-- Fixes to match upstream API changes (in beancount) [Red S]
-
-  Reference: see beancount/CHANGES, under 2015-07-11. The back reference datastructure was
-  removed. Updated plugin to make it work with the new data structure. Might have to see
-  if a clean up is needed.
-- Initial commit. [Red S]
-
-
-## 0.1.1 (2021-02-05)
-
-### Fixes
-- Fix: don't match with the same exact posting. [Jason Kim]
-
-
-### Improvements
-- Zerosum: add config option "tolerance" (#16) [Jason Kim]
-  - feat: add epsilon_delta as config parameter
-
-### Other
-- Style: clarify which txns shouldn't error. [Jason Kim]
-- Tests: various[Jason Kim]
-- Tests: zerosum; test for #15.
-- Tests: rename_accounts
-- Tests: unittests from @jaki.
-
+## 0.1.0
+- Create pythonpublish.yml (310d1b8, 2020-05-03)
+- readme updates for pypi (bc9de42, 2020-05-03)
+- Redo dirs for PyPI (ad3272b, 2020-05-03)
+- add new plugin: capital gains classifier (into gains/losses) (43f0b59, 2020-04-27)
+- Add missing word in docs (09c6987, 2020-03-07)
+- Fix formatting issues in docs (fd45b74, 2020-03-06)
+- Fix typos (#11) (b9db0bb, 2020-03-04)
+- Merge pull request #10 from redstreet/eff_date_per_posting (9fa7aa9, 2020-03-01)
+- cleanup (275a73b, 2020-03-01)
+- added human readable link (thanks justus pendleton for the suggestion) (cdb2d42, 2020-03-01)
+- Merge pull request #9 from redstreet/eff_date_per_posting (65d7323, 2020-02-29)
+- add CHANGES.md (edbdd28, 2020-02-29)
+- Merge pull request #8 from redstreet/eff_date_per_posting (65a2726, 2020-02-29)
+- effective_date README update for per posting (c1fd3cf, 2020-02-29)
+- add beancount links to link original and effective date transactions! (8f698da, 2020-02-29)
+- add operating currency for fava (32d4056, 2020-02-29)
+- Disable old transaction-level hacky effective date (4d8f1e1, 2020-02-29)
+- cleanup (e9642e0, 2020-02-28)
+- effective_date example beancount source. (de4e327, 2020-02-28)
+- gitignore (d027bd9, 2020-02-28)
+- Test skeleton (c6d10be, 2020-02-28)
+- Commented out debug prints (9412278, 2020-02-28)
+- Add per posting effective date. (88b2b97, 2020-02-28)
+- Effective date: recognizing income earlier (fc0fcf1, 2020-02-23)
+- Merge pull request #7 from redstreet/docs (349ec48, 2019-12-07)
+- drat. README title (a869f2d, 2019-12-07)
+- Merge pull request #6 from redstreet/docs (01da2bb, 2019-12-07)
+- more README updates (2282a0e, 2019-12-07)
+- Merge pull request #5 from redstreet/docs (16d48f3, 2019-12-07)
+- add example to README (ce404da, 2019-12-07)
+- Merge pull request #4 from redstreet/docs (d3d2b58, 2019-12-07)
+- Updated README. (21570c4, 2019-12-07)
+- Merge branch 'zerosum_performance' (ac6e180, 2019-11-24)
+- Zerosum: minor refactoring and cleanup (85e25ff, 2019-11-24)
+- Rename plugin can now do arbitrary renames. (2a66ec2, 2019-11-24)
+- Merge pull request #3 from redstreet/zerosum_performance (d420933, 2019-05-18)
+- Cleanup zerosum. (0bae095, 2019-05-18)
+- Refactored zerosum for 4x-6x performance improvement (36fcb95, 2019-05-18)
+- Merge pull request #2 from wzyboy/zerosum-mark-unmatched (951de14, 2019-05-03)
+- Flag transactions, but default off (b5491ef, 2019-05-03)
+- Fix TypeError when account_name_replace is not in config (1bf4c6f, 2019-05-03)
+- zerosum: Mark unmatched txn (ccbd038, 2019-04-19)
+- PEP8 (ef1d95c, 2019-04-18)
+- Print stats conditionally on DEBUG being set (abeac3b, 2019-05-03)
+- README: cleanup and conversion to markdown. (1c76c62, 2019-05-02)
+- Merge branch 'master' of github.com:redstreet/beancount_plugins_redstreet (3d77692, 2019-05-02)
+- Add 'account_name_replace' option in config (8e3926f, 2017-05-07)
+- upstream changes (3d5b275, 2017-04-29)
+- Merge branch 'master' of github.com:redstreet/beancount_plugins_redstreet (8982602, 2016-03-23)
+- Added rename accounts plugin (4e265b2, 2016-03-23)
+- Merge pull request #1 from wzyboy/patch-1 (5c0b310, 2016-03-20)
+- Update README.md (2cca23b, 2016-03-07)
+- update README (c400eb3, 2016-02-23)
+- fixes to match upstream API changes (ref: beancount/2016-02-06) (c7529b1, 2016-02-23)
+- Reorganized directories (ac170d3, 2015-12-21)
+- Added effective date plugin (57e2829, 2015-12-21)
+- Fixes to match upstream API changes (in beancount) (2708cae, 2015-08-06)
+- Initial commit (8a5558e, 2015-05-16)
