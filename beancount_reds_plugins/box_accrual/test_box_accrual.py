@@ -1,8 +1,8 @@
-import pytest
 from datetime import date
 from decimal import Decimal
 from beancount.loader import load_string
 from beancount_reds_plugins.box_accrual import box_accrual
+
 
 def test_box_accrual_two_year_split():
     input_text = """
@@ -41,4 +41,3 @@ def test_box_accrual_two_year_split():
     for p in losses:
         assert p.cost is None
         assert p.price is None
-

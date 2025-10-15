@@ -89,4 +89,3 @@ def box_accrual(entries, unused_options_map, config):
         out.append(entry._replace(postings=new_postings))
 
     return out, []
-
