@@ -50,9 +50,9 @@ This plugin automates that.
   Assets:Investments:Taxable:IBKR-Original-1572:USD                        95,000 USD
   Expenses:Fees-and-Charges:Brokerage-Fees:Taxable:IBKR-Original-1572           6 USD
   Liabilities:Loans:BoxSpreadLoans                           -100,000 USD
-  Income:Investments:Taxable:BoxTrades:Capital-Losses         -1257.10 USD
+  Income:Investments:Taxable:BoxTrades:Capital-Losses         -1087.58 USD
     effective_date: 2025-12-31
-  Income:Investments:Taxable:BoxTrades:Capital-Losses         -3736.90 USD
+  Income:Investments:Taxable:BoxTrades:Capital-Losses         -3906.42 USD
     effective_date: 2026-12-18
 ```
 
