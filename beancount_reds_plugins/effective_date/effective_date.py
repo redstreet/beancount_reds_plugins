@@ -100,8 +100,11 @@ def effective_date(entries, options_map, config):
         if isinstance(entry, data.Transaction):
             if has_valid_effective_date(entry):
                 entry = transform(entry, holding_accts)
+
             if has_posting_with_valid_effective_date(entry):
                 interesting_entries.append(entry)
+            else:
+                filtered_entries.append(entry)
         else:
             filtered_entries.append(entry)
 
