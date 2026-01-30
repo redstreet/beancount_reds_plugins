@@ -59,7 +59,7 @@ def build_config(config):
 def transform(entry, holding_accts):
     """Move e-date metadata from Transaction to Postings."""
     entry_meta = copy.deepcopy(entry.meta)
-    edate = entry.meta.pop("effective_date")
+    edate = entry_meta.pop("effective_date")
 
     new_postings = []
     for posting in entry.postings:
