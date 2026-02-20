@@ -85,6 +85,20 @@ def rename_accounts(entries, options_map, config):  # noqa: C901
 
         new_entries.append(new_entry)
 
+    # Dedupe Open directives to handle multiple accounts being renamed to the same
+    # target. We preserve original ordering and retain only the first of multiple open
+    # directives. This has the effect of preferring directives in the source over
+    # directives inserted by this plugin along with metadata.
+    seen_opens = set()
+    deduped_entries = []
+    for entry in new_entries:
+        if isinstance(entry, data.Open):
+            if entry.account in seen_opens:
+                continue
+            seen_opens.add(entry.account)
+        deduped_entries.append(entry)
+    new_entries = deduped_entries
+
     if DEBUG:
         elapsed_time = time.time() - start_time
         print(

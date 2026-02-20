@@ -226,3 +226,46 @@ class TestUnrealized(cmptest.TestCase):
         """,
             new_entries,
         )
+
+    @loader.load_doc()
+    def test_dedupe_open_directives(self, entries, _, options_map):
+        """
+        2014-01-01 open Assets:Bank
+        2014-01-01 open Income:Salary
+        2014-01-01 open Income:Bonus
+        2014-01-01 open Expenses:Tax
+
+        2014-01-15 * "Salary"
+          Income:Salary        -5000 USD
+          Expenses:Tax          1000 USD
+          Assets:Bank           4000 USD
+
+        2014-01-31 * "Bonus"
+          Income:Bonus         -1000 USD
+          Assets:Bank           1000 USD
+        """
+
+        # Rename multiple accounts to the same target (net income use case)
+        config = """{
+            'Income:Salary': 'Income:Net-Income',
+            'Income:Bonus': 'Income:Net-Income',
+            'Expenses:Tax': 'Income:Net-Income',
+        }"""
+        new_entries, _ = rename_accounts.rename_accounts(entries, options_map, config)
+
+        self.assertEqualEntries(
+            """
+            2014-01-01 open Assets:Bank
+            2014-01-01 open Income:Net-Income
+
+            2014-01-15 * "Salary"
+              Income:Net-Income  -5000 USD
+              Income:Net-Income   1000 USD
+              Assets:Bank         4000 USD
+
+            2014-01-31 * "Bonus"
+              Income:Net-Income  -1000 USD
+              Assets:Bank         1000 USD
+        """,
+            new_entries,
+        )
