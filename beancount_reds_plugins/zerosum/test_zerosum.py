@@ -334,6 +334,114 @@ class TestUnrealized(unittest.TestCase):
         )
 
     @loader.load_doc()
+    def test_no_match_metadata_details_by_default(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Green
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        2015-06-15 * "Expensive furniture"
+          Liabilities:Credit-Cards:Green  -2526.02 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+
+        2015-06-23 * "Expensive furniture Refund"
+          Liabilities:Credit-Cards:Green  1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary
+
+        2015-06-23 * "Expensive furniture Refund"
+          Liabilities:Credit-Cards:Green  1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        """
+        new_entries, _ = zerosum.zerosum(entries, options_map, config)
+
+        matched = get_entries_with_acc_regexp(new_entries, ":ZSA-Matched")
+
+        self.assertEqual(3, len(matched))
+        for m in matched:
+            for p in m.postings:
+                self.assertTrue("source_account" not in p.meta)
+                self.assertTrue("matched_account" not in p.meta)
+                self.assertTrue("matched_date" not in p.meta)
+
+    @loader.load_doc()
+    def test_match_metadata_details_added(self, entries, _, options_map):
+        """
+        2023-01-01 open Assets:Bank:Checking
+        2023-01-01 open Assets:Bank:Savings
+        2023-01-01 open Assets:Zero-Sum-Accounts:Checkings
+
+        2024-01-01 * "Transfer out"
+          Assets:Bank:Checking                          -500.00 USD
+          Assets:Zero-Sum-Accounts:Checkings             500.00 USD
+
+        2024-01-02 * "Transfer in"
+          Assets:Bank:Savings                            500.00 USD
+          Assets:Zero-Sum-Accounts:Checkings
+        """
+        new_entries, _ = zerosum.zerosum(
+            entries, options_map, config[:-2] + """'match_metadata_details': True,\n}"""
+        )
+
+        matched = dict(
+            [
+                (m.narration, m)
+                for m in get_entries_with_acc_regexp(new_entries, ":ZSA-Matched")
+            ]
+        )
+
+        self.assertEqual(2, len(matched))
+
+        # Transfer out posting: source=Assets:Bank:Checking, matched=Assets:Bank:Savings, date=2024-01-02
+        out_posting = matched["Transfer out"].postings[1]
+        self.assertEqual("Assets:Bank:Checking", out_posting.meta["source_account"])
+        self.assertEqual("Assets:Bank:Savings", out_posting.meta["matched_account"])
+        self.assertEqual("2024-01-02", out_posting.meta["matched_date"])
+
+        # Transfer in posting: source=Assets:Bank:Savings, matched=Assets:Bank:Checking, date=2024-01-01
+        in_posting = matched["Transfer in"].postings[1]
+        self.assertEqual("Assets:Bank:Savings", in_posting.meta["source_account"])
+        self.assertEqual("Assets:Bank:Checking", in_posting.meta["matched_account"])
+        self.assertEqual("2024-01-01", in_posting.meta["matched_date"])
+
+    @loader.load_doc()
+    def test_match_metadata_details_names_changed(self, entries, _, options_map):
+        """
+        2023-01-01 open Assets:Bank:Checking
+        2023-01-01 open Assets:Bank:Savings
+        2023-01-01 open Assets:Zero-Sum-Accounts:Checkings
+
+        2024-01-01 * "Transfer out"
+          Assets:Bank:Checking                          -500.00 USD
+          Assets:Zero-Sum-Accounts:Checkings             500.00 USD
+
+        2024-01-02 * "Transfer in"
+          Assets:Bank:Savings                            500.00 USD
+          Assets:Zero-Sum-Accounts:Checkings
+        """
+        new_entries, _ = zerosum.zerosum(
+            entries,
+            options_map,
+            config[:-2]
+            + """'match_metadata_details': True,\n'match_metadata_details_names': ('src', 'matched', 'date')\n}""",
+        )
+
+        matched = dict(
+            [
+                (m.narration, m)
+                for m in get_entries_with_acc_regexp(new_entries, ":ZSA-Matched")
+            ]
+        )
+
+        self.assertEqual(2, len(matched))
+
+        out_posting = matched["Transfer out"].postings[1]
+        self.assertIn("src", out_posting.meta)
+        self.assertIn("matched", out_posting.meta)
+        self.assertIn("date", out_posting.meta)
+        self.assertNotIn("source_account", out_posting.meta)
+        self.assertNotIn("matched_account", out_posting.meta)
+        self.assertNotIn("matched_date", out_posting.meta)
+
+    @loader.load_doc()
     def test_no_links_by_default(self, entries, _, options_map):
         """
         2015-01-01 open Liabilities:Credit-Cards:Green

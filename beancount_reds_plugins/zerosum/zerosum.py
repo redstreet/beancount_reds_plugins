@@ -176,6 +176,8 @@ DEBUG = 0
 DEFAULT_TOLERANCE = 0.0099
 MATCHING_ID_STRING = "match_id"
 LINK_PREFIX = "ZeroSum."
+MATCH_METADATA_DETAILS_NAMES = ("source_account", "matched_account", "matched_date")
+MATCH_METADATA_DETAILS_ACCOUNT_TYPES = ("Assets", "Liabilities")
 random.seed(6)  # arbitrary fixed seed
 
 __plugins__ = (
@@ -205,6 +207,29 @@ def metadata_update(txn, posting, match_id, matching_id_string):
 def transaction_update(txn, match_id, link_prefix):
     if match_id and link_prefix:
         txn.links.add(link_prefix + match_id)
+
+
+def get_counterpart_account(txn, zs_accounts_list, account_types):
+    """Return the first posting account (with units) matching account_types that is not a zerosum account (typically an Assets/Liabilities account)."""
+    for p in txn.postings:
+        if (
+            p.account not in zs_accounts_list
+            and p.units
+            and any(p.account.startswith(t) for t in account_types)
+        ):
+            return p.account
+    return None
+
+
+def metadata_update_details(posting, source_acc, matched_acc, matched_dt, key_names):
+    if source_acc and matched_acc and posting.meta is not None:
+        posting.meta.update(
+            {
+                key_names[0]: source_acc,
+                key_names[1]: matched_acc,
+                key_names[2]: str(matched_dt),
+            }
+        )
 
 
 def zerosum(entries, options_map, config):  # noqa: C901
@@ -239,6 +264,16 @@ def zerosum(entries, options_map, config):  # noqa: C901
         have links added, allowing manual verification in post (default off)
 
       - 'link_prefix': prefix to use in link names (default 'ZeroSum.')
+
+      - 'match_metadata_details': bool to add source/matched account and date metadata to
+        matched postings (default off)
+
+      - 'match_metadata_details_names': tuple of three strings overriding the metadata key
+        names for (source_account, matched_account, matched_date)
+        (default ('source_account', 'matched_account', 'matched_date'))
+
+      - 'match_metadata_details_account_types': tuple of account type prefixes used to
+        identify the counterpart account in each transaction (default ('Assets', 'Liabilities'))
 
       See example for more info.
 
@@ -285,6 +320,13 @@ def zerosum(entries, options_map, config):  # noqa: C901
     match_metadata_name = config_obj.pop("match_metadata_name", MATCHING_ID_STRING)
     link_transactions = config_obj.pop("link_transactions", False)
     link_prefix = config_obj.pop("link_prefix", LINK_PREFIX)
+    match_metadata_details = config_obj.pop("match_metadata_details", False)
+    match_metadata_details_names = config_obj.pop(
+        "match_metadata_details_names", MATCH_METADATA_DETAILS_NAMES
+    )
+    match_metadata_details_account_types = config_obj.pop(
+        "match_metadata_details_account_types", MATCH_METADATA_DETAILS_ACCOUNT_TYPES
+    )
 
     new_accounts = set()
     zerosum_postings_count = 0
@@ -344,6 +386,32 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             if link_transactions:
                                 transaction_update(txn, match_id, link_prefix)
                                 transaction_update(match[1], match_id, link_prefix)
+
+                            if match_metadata_details:
+                                src_acc = get_counterpart_account(
+                                    txn,
+                                    zs_accounts_list,
+                                    match_metadata_details_account_types,
+                                )
+                                match_src_acc = get_counterpart_account(
+                                    match[1],
+                                    zs_accounts_list,
+                                    match_metadata_details_account_types,
+                                )
+                                metadata_update_details(
+                                    posting,
+                                    src_acc,
+                                    match_src_acc,
+                                    match[1].date,
+                                    match_metadata_details_names,
+                                )
+                                metadata_update_details(
+                                    match[0],
+                                    match_src_acc,
+                                    src_acc,
+                                    txn.date,
+                                    match_metadata_details_names,
+                                )
 
                             new_accounts.add(target_account)
                             reprocess = True
