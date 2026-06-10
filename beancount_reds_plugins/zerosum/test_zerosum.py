@@ -1,7 +1,7 @@
 import re
 import unittest
 
-from beancount import loader
+from beancount import FLAG_OKAY, FLAG_WARNING, loader
 from beancount.core import data
 from beancount.parser import options
 
@@ -587,3 +587,58 @@ class TestUnrealized(unittest.TestCase):
                 )
             )
         )
+
+    @loader.load_doc()
+    def test_no_rename(self, entries, _, options_map):
+        """
+        2015-01-01 open Liabilities:Credit-Cards:Green
+        2015-01-01 open Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        2015-06-15 * "Expensive furniture"
+          Liabilities:Credit-Cards:Green  -2526.02 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary             1263.01 USD
+
+        2015-06-23 * "Expensive furniture Refund"
+          Liabilities:Credit-Cards:Green  1263.01 USD
+          Assets:Zero-Sum-Accounts:Returns-and-Temporary
+        """
+        config_no_rename = """{
+            'zerosum_accounts' : {
+                'Assets:Zero-Sum-Accounts:Returns-and-Temporary'      : ('', 90),
+            },
+            'match_metadata': True,
+            'match_metadata_name': 'MATCH',
+            'link_transactions': True,
+            'link_prefix': 'ZSM',
+            'flag_unmatched': True,
+        }"""
+
+        # This should complete without hanging
+        new_entries, _ = zerosum.zerosum(entries, options_map, config_no_rename)
+        new_new_entries, _ = zerosum.flag_unmatched(
+            new_entries, options_map, config_no_rename
+        )
+
+        new_transactions = dict(
+            (m.narration, m) for m in new_new_entries if isinstance(m, data.Transaction)
+        )
+
+        self.assertEqual(2, len(new_transactions))
+        for m in new_transactions.values():
+            # Account names should remain unchanged (no rename)
+            self.assertTrue(
+                "Assets:Zero-Sum-Accounts:Returns-and-Temporary"
+                in [p.account for p in m.postings]
+            )
+            # Verify links were added
+            self.assertTrue(any(link.startswith("ZSM") for link in m.links))
+
+        # Verify metadata was added
+        self.assertEqual(
+            new_transactions["Expensive furniture"].postings[2].meta["MATCH"],
+            new_transactions["Expensive furniture Refund"].postings[1].meta["MATCH"],
+        )
+
+        # Verify flag was added
+        self.assertEqual(FLAG_WARNING, new_transactions["Expensive furniture"].flag)
+        self.assertEqual(FLAG_OKAY, new_transactions["Expensive furniture Refund"].flag)
