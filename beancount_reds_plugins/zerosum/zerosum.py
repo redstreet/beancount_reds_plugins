@@ -176,12 +176,18 @@ DEBUG = 0
 DEFAULT_TOLERANCE = 0.0099
 MATCHING_ID_STRING = "match_id"
 LINK_PREFIX = "ZeroSum."
+META_FIELD = "__beancount_reds_plugins.zerosum.zerosum__"
 random.seed(6)  # arbitrary fixed seed
 
 __plugins__ = (
     "zerosum",
     "flag_unmatched",
 )
+
+
+def is_unmatched_posting(p, account):
+    """Checks if a posting is an unmatched posting in the zerosum account."""
+    return p.account == account and not (p.meta and META_FIELD in p.meta)
 
 
 # replace the account on a given posting with a new account
@@ -260,8 +266,8 @@ def zerosum(entries, options_map, config):  # noqa: C901
                     # Don't match with the same exact posting.
                     continue
                 if (
-                    abs(p.units.number + posting.units.number) < tolerance
-                    and p.account == zs_account
+                    is_unmatched_posting(p, zs_account)
+                    and abs(p.units.number + posting.units.number) < tolerance
                 ):
                     return (p, t)
         return None
@@ -317,7 +323,7 @@ def zerosum(entries, options_map, config):  # noqa: C901
             while reprocess:  # necessary since this entry's postings changes under us when we find a match
                 for posting in txn.postings:
                     reprocess = False
-                    if posting.account == zs_account:
+                    if is_unmatched_posting(posting, zs_account):
                         match = find_match()
                         if match:
                             # print('Match:', txn.date, match[1].date, match[1].date - txn.date,
@@ -327,11 +333,10 @@ def zerosum(entries, options_map, config):  # noqa: C901
                             account_replace(txn, posting, target_account)
                             account_replace(match[1], match[0], target_account)
 
-                            match_id = (
-                                generate_match_id()
-                                if match_metadata or link_transactions
-                                else None
-                            )
+                            match_id = generate_match_id()
+
+                            metadata_update(txn, posting, match_id, META_FIELD)
+                            metadata_update(match[1], match[0], match_id, META_FIELD)
 
                             if match_metadata:
                                 metadata_update(
@@ -389,7 +394,9 @@ def flag_unmatched(entries, unused_options_map, config):
     for entry in entries:
         if isinstance(entry, data.Transaction):
             for posting in entry.postings:
-                if posting.account in zs_accounts:
+                if posting.account in zs_accounts and is_unmatched_posting(
+                    posting, posting.account
+                ):
                     entry = entry._replace(flag=flags.FLAG_WARNING)
                     break
         new_entries.append(entry)
