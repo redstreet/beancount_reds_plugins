@@ -70,11 +70,25 @@ def long_short(entries, options_map, config):  # noqa: C901
             if (p.cost and p.units.number and p.price is not None)
         ]
 
+    def missing_basis(p):
+        # Classification needs a cost number (the gain's basis) always, and
+        # a cost date (the holding period's start) only when the posting
+        # sells a long lot. A cover needs no date: closing a written option
+        # or any short position is short-term whatever its holding period
+        # (see sale_type).
+        return p.cost.number is None or (p.units.number < 0 and p.cost.date is None)
+
     def sale_type(p, entry_date):
+        # The income posting's amount, sign and all: a gain credits
+        # (negative), a loss debits (positive).
+        gain = (p.price.number - p.cost.number) * p.units.number
+        if p.units.number > 0:
+            # Closing a written option or any short position is short-term
+            # whatever its holding period (US IRC 1234(b); 1233(a) for short
+            # sales). The units sign is that fact at entry level: a
+            # reduction posting with positive units closes a short.
+            return False, gain
         diff = relativedelta.relativedelta(entry_date, p.cost.date)
-        gain = (p.cost.number - p.price.number) * abs(
-            p.units.number
-        )  # Income is negative
         # relativedelta is used to account for leap years. IRS' definition is at the bottom of the file
         return diff.years > 1 or (
             diff.years == 1 and (diff.months >= 1 or diff.days >= 1)
@@ -87,7 +101,13 @@ def long_short(entries, options_map, config):  # noqa: C901
 
         if isinstance(entry, data.Transaction) and is_interesting_entry(entry):
             rewrite_count_matches += 1
-            sale_types = [sale_type(p, entry.date) for p in reductions(entry)]
+            reduction_postings = reductions(entry)
+            # Leave the entry unchanged if any reduction lacks what
+            # classification needs of it (missing_basis): rebooking only
+            # some of its gains would unbalance the user's ledger.
+            if any(missing_basis(p) for p in reduction_postings):
+                continue
+            sale_types = [sale_type(p, entry.date) for p in reduction_postings]
             if not sale_types:
                 continue
             short_gains = sum(s[1] for s in sale_types if s[0] is False)
@@ -104,8 +124,11 @@ def long_short(entries, options_map, config):  # noqa: C901
             # ensure our replacement postings sum up to the original capital gains postings we removed
             diff = orig_sum - (short_gains + long_gains)
             # divide this diff among short/long. TODO: warn if this is over tolerance threshold, because it
-            # means that the transaction is probably not accounted for correctly
-            if abs(diff) >= entry.meta["__tolerances__"][p.units.currency]:
+            # means that the transaction is probably not accounted for correctly.
+            # When the recomputed gains already match, the division below
+            # would only pollute their scale (a zero diff still goes
+            # through it), so skip it.
+            if diff and abs(diff) >= entry.meta["__tolerances__"][p.units.currency]:
                 total = short_gains + long_gains
                 short_gains += (short_gains / total) * diff
                 long_gains += (long_gains / total) * diff
@@ -161,3 +184,12 @@ def long_short(entries, options_map, config):  # noqa: C901
 # If you bought investment property on February 5, 2008, and sold it on February 5, 2009, your holding period
 # is not more than 1 year and you have a short-term capital gain or loss. If you sold it on February 6, 2009,
 # your holding period is more than 1 year and you have a long-term capital gain or loss.
+#
+# Written options and short sales.
+#
+# IRC 1234(b): gain on closing a written option is short-term however long the option was held.
+# IRC 1233(a): rules for gains from short sales.
+#
+# Both close a short position, which the units sign shows on the reduction posting: positive
+# units close a short and are always short-term; negative units sell a long lot and follow
+# the one-year rule above.

@@ -100,6 +100,12 @@ where `<match_regexp>` is a regexp to match in a posting account. Here is an exa
   - implements [IRS' definition](https://www.irs.gov/publications/p550#en_US_publink100010540)
     of "long term" as "more than 1 year" (which could be >= 366 or 367 days depending on
     whether a leap year is involved)
+  - closing a written option or any short position is always short-term whatever its
+    holding period (US IRC 1234(b); 1233(a) for short sales). The units sign on the lot
+    reduction tells the two apart: positive units close a short, negative units sell a
+    long lot and are classified by holding period as above
+  - the gain keeps the posting's sign: `(price - cost) * units`, so a gain credits income
+    and a loss debits it, for covers as well as sales
 
 - price must be defined in the lot reduction (sale) transaction
 
